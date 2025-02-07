@@ -355,13 +355,13 @@
    then
         (loop for item in list
 	      if (null item) collect nil into value-list
-	      else collect (send item (eval method) (car arg))
+	      else collect (send item method (car arg))
 	           into value-list
 	      finally (return value-list))
    else
         (loop for item in list
 	      if (null item) collect nil into value-list
-	      else collect (send item (eval method)) into value-list
+	      else collect (send item method) into value-list
 	      finally (return value-list))))
 
 
