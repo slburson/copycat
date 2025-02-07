@@ -1,9 +1,9 @@
 ;---------------------------------------------
-; CONCEPT-MAPPINGS: This file contains flavors and methods for 
+; CONCEPT-MAPPINGS: This file contains flavors and methods for
 ;                   concept-mappings.
 ;---------------------------------------------
 
-(in-package 'user)
+(in-package :copycat)
 
 ;---------------------------------------------
 
@@ -11,11 +11,11 @@
 ; For "rightmost -> leftmost",
 ; description-type1 = plato-string-position-category,
 ; description-type2 = plato-string-position-category,
-; descriptor1 = plato-rightmost, 
-; descriptor2 = plato-leftmost, 
+; descriptor1 = plato-rightmost,
+; descriptor2 = plato-leftmost,
 ; label = plato-opposite,
 ; obj1 = the rightmost object,
-; obj2 = the leftmost object.  
+; obj2 = the leftmost object.
 ; The previous font is used in the graphics routines.
 
 (defflavor concept-mapping
@@ -29,13 +29,13 @@
 ;---------------------------------------------
 
 (defmethod (concept-mapping :print) ()
-  (format t "~a -> ~a" 
+  (format t "~a -> ~a"
 	  (send descriptor1 :pname) (send descriptor2 :pname)))
 
 ;---------------------------------------------
 
-(defun make-concept-mapping (description-type1 description-type2 
-				    descriptor1 descriptor2 obj1 obj2)    
+(defun make-concept-mapping (description-type1 description-type2
+				    descriptor1 descriptor2 obj1 obj2)
 ; Returns a new concept mapping.
   (make-instance 'concept-mapping
       :description-type1 description-type1
@@ -56,7 +56,7 @@
 
 (defmethod (concept-mapping :degree-of-association) ()
 ; This assumes the two descriptors in the concept-mapping are connected in
-; the slipnet by at most one slip link.  This should eventually be 
+; the slipnet by at most one slip link.  This should eventually be
 ; generalized.
   (if* (eq descriptor1 descriptor2)
    then 100
@@ -67,7 +67,7 @@
 ;---------------------------------------------
 
 (defmethod (concept-mapping :conceptual-depth) ()
-  (average (send descriptor1 :conceptual-depth) 
+  (average (send descriptor1 :conceptual-depth)
            (send descriptor2 :conceptual-depth)))
 
 ;---------------------------------------------
@@ -78,8 +78,8 @@
 ;---------------------------------------------
 
 (defmethod (concept-mapping :distinguishing?) ()
-  ; For now, the concept-mapping "whole -> whole" is not considered 
-  ; distinguishing, that is, a correspondence cannot be built on it alone.  
+  ; For now, the concept-mapping "whole -> whole" is not considered
+  ; distinguishing, that is, a correspondence cannot be built on it alone.
   ; This should eventually be generalized or changed.
   (if* (and (eq descriptor1 plato-whole) (eq descriptor2 plato-whole))
    then nil
@@ -99,12 +99,12 @@
 ; E.g., if the concept-mapping is "rightmost -> leftmost",
 ; returns "leftmost -> rightmost".
   (cond ((eq (send self :label) plato-identity) self)
-	((not (eq (get-label-node (send self :descriptor2) 
+	((not (eq (get-label-node (send self :descriptor2)
 		                  (send self :descriptor1))
 		  (send self :label)))
 	 nil)
-	(t (make-concept-mapping 
-	       description-type2 description-type1 
+	(t (make-concept-mapping
+	       description-type2 description-type1
 	       descriptor2 descriptor1
 	       obj1 obj2))))
 
@@ -113,21 +113,21 @@
 (defun contradictory-concept-mappings? (concept-mapping1 concept-mapping2)
 ; Returns t if the two concept-mappings contradict each other.  E.g,
 ; "rightmost -> leftmost" contradicts "rightmost -> rightmost".
-  (or (and (eq (send concept-mapping1 :descriptor1) 
+  (or (and (eq (send concept-mapping1 :descriptor1)
 	       (send concept-mapping2 :descriptor1))
-	   (not (eq (send concept-mapping1 :descriptor2) 
+	   (not (eq (send concept-mapping1 :descriptor2)
 		    (send concept-mapping2 :descriptor2))))
-      (and (eq (send concept-mapping1 :descriptor2) 
+      (and (eq (send concept-mapping1 :descriptor2)
 	       (send concept-mapping2 :descriptor2))
-	   (not (eq (send concept-mapping1 :descriptor1) 
+	   (not (eq (send concept-mapping1 :descriptor1)
 		    (send concept-mapping2 :descriptor1))))))
 
 ;---------------------------------------------
 
 (defun all-opposite-concept-mappings? (concept-mapping-list)
 ; Returns t if all the concept-mappings in the list have label "opposite".
-  (loop for concept-mapping in concept-mapping-list 
-	when (not (eq (send concept-mapping :label) plato-opposite)) 
+  (loop for concept-mapping in concept-mapping-list
+	when (not (eq (send concept-mapping :label) plato-opposite))
 	return nil
 	finally (return t)))
 

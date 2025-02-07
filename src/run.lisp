@@ -2,8 +2,8 @@
 ; RUN: This file contains functions for running the program.
 ;---------------------------------------------
 
-(in-package 'user)
-  
+(in-package :copycat)
+
 (defun run-ccat ()
 ; Runs the main loop of the program:  choose a codelet, run it.  Every
 ; %time-step-length% time-steps, update everything in the program (all the
@@ -12,13 +12,13 @@
   ; This is the main loop of the program.
   (loop until *quit-program* do
 
-        ; If the program has run for %time-step-length% steps, then 
+        ; If the program has run for %time-step-length% steps, then
 	; update everything.
         (if* (= (mod *codelet-count* %time-step-length%) 0)
 	 then (update-everything))
 
-        ; If there are no codelets left in the coderack, then 
-	; clamp the initially clamped nodes and post the 
+        ; If there are no codelets left in the coderack, then
+	; clamp the initially clamped nodes and post the
 	; initial set of codelets.
 	(if* (send *coderack* :empty?)
          then (loop for node in *initially-clamped-slipnodes* do
@@ -29,14 +29,14 @@
 	(step-ccat)
 
 	(if* %verbose% then (break))
-        
+
         ; If the rule has been translated, then build the answer.
-        (if* *translated-rule*   
-         then (answer-builder) 
-              (if* *found-answer* 
+        (if* *translated-rule*
+         then (answer-builder)
+              (if* *found-answer*
 	       then (update-everything)
-                    (if* %verbose% 
-	             then (format t "My answer is ~a.~&" 
+                    (if* %verbose%
+	             then (format t "My answer is ~a.~&"
 				    (send *answer-string* :pstring)))
 
                     ; Collect some statistics.
@@ -46,48 +46,48 @@
 
 		    (if* (= (send plato-length :activation) 100)
                      then (setq *length-relevant-at-end* t))
-			  
+
   		    (setq *quit-program* t)))))
 
 ;---------------------------------------------
 
 (defun update-everything (&aux new-structure-list unclamp-probability)
-; Updates all the values in the program (workspace values, slipnet 
+; Updates all the values in the program (workspace values, slipnet
 ; activations, etc.).
 
   (setq *updating-everything* t)
 
   ; Update values for structures and objects.
-  (send-method-to-list (send *workspace* :structure-list) 
+  (send-method-to-list (send *workspace* :structure-list)
                        :update-strength-values)
   (send-method-to-list (send *workspace* :object-list) :update-object-values)
   (send *initial-string* :update-relative-importances)
   (send *target-string* :update-relative-importances)
   (send *initial-string* :update-intra-string-unhappiness)
   (send *target-string* :update-intra-string-unhappiness)
-  
+
   ; If %initial-slipnode-clamp-time% cycles have gone by, then unclamp
   ; the initially-clamped slipnodes.
-  (if* (= *codelet-count* 
+  (if* (= *codelet-count*
 	  (* %initial-slipnode-clamp-time% %time-step-length%))
    then (loop for node in *initially-clamped-slipnodes*
 	      do (send node :set-clamp nil)))
-  
+
   ; If the program is dealing with a snag, then see if any new structures
   ; have been made.  If so, see if snag condition should be ended.
   (if* (and *snag-object* *snag-condition*)
    then (setq new-structure-list
 	      (loop for structure in (send *workspace* :structure-list)
 		    when (and (not (typep structure 'bond))
-			      (not (send *workspace* 
+			      (not (send *workspace*
 					 :structure-in-snag-structure-list?
 					 structure)))
 		    collect structure))
 
-        (setq unclamp-probability 
+        (setq unclamp-probability
 	      (if* (null new-structure-list)
                then 0
-	       else (/ (list-max (send-method-to-list new-structure-list 
+	       else (/ (list-max (send-method-to-list new-structure-list
 			 	                      :total-strength))
 		       100)))
 
@@ -97,10 +97,10 @@
               (loop for d in (send *snag-object* :descriptions) do
    	            (send (send d :descriptor) :set-clamp nil))
               (send *snag-object* :set-clamp-salience? nil)))
- 
-  (if* (> *codelet-count* 0) 
+
+  (if* (> *codelet-count* 0)
    then (update-temperature)
-        (get-bottom-up-codelets) 
+        (get-bottom-up-codelets)
         (get-top-down-codelets)
 	(update-slipnet))
 
@@ -112,18 +112,18 @@
    then (if* %description-graphics% then (display-descriptions))
         (if* %temperature-graphics% then (update-temperature-display))
         (if* %coderack-graphics% then (update-coderack-display))
-        (if* %minimal-coderack-graphics% 
+        (if* %minimal-coderack-graphics%
 	 then (update-minimal-coderack-display))
         (if* %slipnet-graphics% then (update-slipnet-display))
         ; Update concept-mapping and length displays.
-        (if* %workspace-graphics% 
+        (if* %workspace-graphics%
          then (loop for c in (send *workspace* :correspondence-list) do
                     (send c :erase-concept-mappings)
                     (send c :draw-concept-mappings))
-              (loop for group 
+              (loop for group
 	            in (send *workspace* :group-list) do
 	               (if* (send (send group :graphics-obj) :graphics-length)
-                        then (send group :erase-length) 
+                        then (send group :erase-length)
   		             (send group :draw-length)))
               (if* (= (mod *codelet-count* 100) 0) then (redraw-graphics))))
 
@@ -131,52 +131,52 @@
 
 ;---------------------------------------------
 
-(defun step-ccat (&aux codelet)  
-; Runs one step of the program:  chooses and runs a codelet from the 
+(defun step-ccat (&aux codelet)
+; Runs one step of the program:  chooses and runs a codelet from the
 ; coderack.
   (setq codelet (send *coderack* :choose))
   (if* %slightly-verbose% then (send codelet :print))
   (send codelet :run)
   (setq *codelet-count* (1+ *codelet-count*))
   (if* %verbose% then (format t "~%"))
-  (if* *break-on-each-step* 
-   then (if* %minimal-coderack-graphics% 
+  (if* *break-on-each-step*
+   then (if* %minimal-coderack-graphics%
 	 then (update-minimal-coderack-display))
         (break)))
-      
+
 ;---------------------------------------------
 
 (defun deal-with-snag ()
-; If there is a snag in building the answer, then delete all 
-; proposed structures, empty the coderack, raise and clamp the 
-; temperature, and activate and clamp the activation of all the descriptions 
-; of the object causing the snag.  
+; If there is a snag in building the answer, then delete all
+; proposed structures, empty the coderack, raise and clamp the
+; temperature, and activate and clamp the activation of all the descriptions
+; of the object causing the snag.
 
   (incf *snag-count*)
   (setq *last-snag-time* *codelet-count*)
-  ; Save the current set of structures.  
+  ; Save the current set of structures.
   (setq *snag-structure-list* (send *workspace* :structure-list))
 
-  ; Erase proposed structures.  (Their builder codelets will 
+  ; Erase proposed structures.  (Their builder codelets will
   ; disappear when the coderack is initialized.)
   (if* %workspace-graphics%
    then (loop for b in (send *workspace* :proposed-bond-list)
-	      do (send (send b :string) 
+	      do (send (send b :string)
 		       :delete-proposed-bond b)
-	         (if* (not (send (send b :string) 
+	         (if* (not (send (send b :string)
 				 :bond-present? b))
 		  then (send b :erase-spline)))
         (loop for g in (send *workspace* :proposed-group-list)
-	      do (send (send g :string) 
+	      do (send (send g :string)
 		       :delete-proposed-group g)
-	         (if* (not (send (send g :string) 
+	         (if* (not (send (send g :string)
 				 :group-present? g))
                   then (send g :erase-rectangle)))
-        (loop for c in (send *workspace* 
+        (loop for c in (send *workspace*
 			     :proposed-correspondence-list)
-	      do (send *workspace* 
+	      do (send *workspace*
 		       :delete-proposed-correspondence c)
-                 (if* (not (send *workspace* 
+                 (if* (not (send *workspace*
 				 :correspondence-present? c))
                   then (send c :erase-line))))
   (send *coderack* :empty)
@@ -195,7 +195,7 @@
   (send *coderack* :empty)
   (post-initial-codelets)
   (update-everything))
-  
+
 ;---------------------------------------------
 
 (defun unanswer ()
@@ -208,8 +208,3 @@
   (run-ccat))
 
 ;---------------------------------------------
-  
-
-
-
-

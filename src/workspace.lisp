@@ -1,21 +1,21 @@
 ;---------------------------------------------
-; WORKSPACE: This file contains flavor definitions and methods for the 
+; WORKSPACE: This file contains flavor definitions and methods for the
 ;            workspace.
 ;---------------------------------------------
 
-(in-package 'user)
+(in-package :copycat)
 
 (defflavor workspace
-; The workspace contains a list of replacements (mappings from the 
+; The workspace contains a list of replacements (mappings from the
 ; initial string to the modified string, e.g., from "abc" to "abd"),
 ; a vector of correspondences (mappings from the initial-string to the
 ; target string, e.g., from "abc" to "pqrs"), and an array of proposed
 ; correspondences.
-    ((replacement-list nil) proposed-correspondence-array 
+    ((replacement-list nil) proposed-correspondence-array
      correspondence-vector)
     ()
-    :gettable-instance-variables    
-    :settable-instance-variables            
+    :gettable-instance-variables
+    :settable-instance-variables
     :initable-instance-variables)
 
 ;---------------------------------------------
@@ -70,10 +70,10 @@
 ; Adds a proposed-correspondence to the workspace's array of
 ; proposed-correspondences, using the string-numbers of the two
 ; objects as indices.
-  (aset (send self :proposed-correspondence-array) 
+  (aset (send self :proposed-correspondence-array)
              (send (send c :obj1) :string-number)
              (send (send c :obj2) :string-number)
-	     (cons c (aref (send self :proposed-correspondence-array) 
+	     (cons c (aref (send self :proposed-correspondence-array)
 		                (send (send c :obj1) :string-number)
 		                (send (send c :obj2) :string-number)))))
 
@@ -82,10 +82,10 @@
 (defmethod (workspace :delete-proposed-correspondence) (c)
 ; Deletes a proposed-correspondence from the workspace's array of
 ; proposed-correspondences.
-  (aset (send self :proposed-correspondence-array) 
+  (aset (send self :proposed-correspondence-array)
              (send (send c :obj1) :string-number)
              (send (send c :obj2) :string-number)
-	     (remove c (aref (send self :proposed-correspondence-array) 
+	     (remove c (aref (send self :proposed-correspondence-array)
 		                (send (send c :obj1) :string-number)
 		                (send (send c :obj2) :string-number)))))
 
@@ -94,10 +94,10 @@
 (defmethod (workspace :add-correspondence) (c)
 ; Adds a correspondence to the workspace's vector of
 ; built correspondences, using the string-number of the initial-string
-; object as an index.  Each object can have at most one built 
-; correspondence (though more than one proposed correspondences) so it is not 
+; object as an index.  Each object can have at most one built
+; correspondence (though more than one proposed correspondences) so it is not
 ; necessary to store the built correspondences in an array.
-  (vset (send self :correspondence-vector) 
+  (vset (send self :correspondence-vector)
 	(send (send c :obj1) :string-number) c))
 
 ;---------------------------------------------
@@ -105,12 +105,12 @@
 (defmethod (workspace :delete-correspondence) (c)
 ; Deletes a correspondence from the workspace's vector of
 ; built correspondences.
-  (vset (send self :correspondence-vector) 
+  (vset (send self :correspondence-vector)
 	(send (send c :obj1) :string-number) nil))
 
 ;---------------------------------------------
 
-(defmethod (workspace :correspondence-present?) 
+(defmethod (workspace :correspondence-present?)
                       (c &aux existing-correspondence)
 ; Returns t if the given correspondence exists on the workspace.
   (if* (not (null (send (send c :obj1) :correspondence)))
@@ -133,7 +133,7 @@
 ;---------------------------------------------
 
 (defmethod (workspace :object-list) ()
-; Returns a list of all the objects (letters and groups) on the 
+; Returns a list of all the objects (letters and groups) on the
 ; workspace.
   (append (send *initial-string* :object-list)
 	  (send *target-string* :object-list)))
@@ -160,11 +160,11 @@
 ; This method is used after a snag has been hit and the temperature has
 ; been clamped to determine whether or not to release the temperature
 ; clamp. This method is called from the function "update-everything"
-; in the file "run.l".  Returns t if the given structure is in the list of 
-; structures that were present when the last snag was hit.  (If this method 
+; in the file "run.l".  Returns t if the given structure is in the list of
+; structures that were present when the last snag was hit.  (If this method
 ; returns nil, that is, this structure was built since the snag was hit,
 ; then there is some chance that the temperature clamp will be released.)
-  (cond ((typep s 'bond) 
+  (cond ((typep s 'bond)
 	 (loop for structure in *snag-structure-list*
 	       when (typep structure 'bond) do
 	       (if* (and (eq (send structure :from-obj) (send s :from-obj))
@@ -176,7 +176,7 @@
                 then (return t))))
 
 
-	((typep s 'group) 
+	((typep s 'group)
 	 (loop for structure in *snag-structure-list*
 	       when (typep structure 'group) do
 	       (if* (and (eq (send structure :left-obj) (send s :left-obj))
@@ -187,22 +187,22 @@
 			     (send s :direction-category)))
                 then (return t))))
 
-        ((typep s 'correspondence) 
+        ((typep s 'correspondence)
 	 (loop for structure in *snag-structure-list*
 	       when (typep structure 'correspondence) do
 	       (if* (and (eq (send structure :obj1) (send s :obj1))
 			 (eq (send structure :obj2) (send s :obj2))
-			 (>= (length (send structure 
+			 (>= (length (send structure
 					   :relevant-distinguishing-cms))
 			     (length (send s :relevant-distinguishing-cms))))
                 then (return t))))
-	       
 
-        ((typep s 'rule) 
+
+        ((typep s 'rule)
 	 (loop for structure in *snag-structure-list*
 	       when (typep structure 'rule)
 	       return (rule-equal? structure s)))))
-	
+
 ;---------------------------------------------
 
 (defmethod (workspace :random-string) ()
@@ -214,7 +214,7 @@
 (defmethod (workspace :random-object) ()
 ; Returns a random object on the workspace.
   (random-list-item (send self :object-list)))
-	  
+
 ;---------------------------------------------
 
 (defmethod (workspace :random-group) ()
@@ -230,8 +230,8 @@
 ;---------------------------------------------
 
 (defmethod (workspace :choose-object) (method &aux value-list)
-; Returns an object on the workspace chosen probabilistically 
-; (adjusted for temperature) according to the given method.   
+; Returns an object on the workspace chosen probabilistically
+; (adjusted for temperature) according to the given method.
   (setq value-list (send-method-to-list (send self :object-list) method))
   (nth (select-list-position (get-temperature-adjusted-value-list value-list))
        (send self :object-list)))
@@ -247,16 +247,16 @@
 
 ;---------------------------------------------
 
-(defmethod (workspace :unrelated-objects) (&aux num-of-bonds result)    
-; Returns a list of all the objects on the workspace that have at least one 
-; bond-slot open. Leftmost and rightmost objects have one bond-slot, 
-; and other objects have two bond-slots (one on the left and one on the 
+(defmethod (workspace :unrelated-objects) (&aux num-of-bonds result)
+; Returns a list of all the objects on the workspace that have at least one
+; bond-slot open. Leftmost and rightmost objects have one bond-slot,
+; and other objects have two bond-slots (one on the left and one on the
 ; right).
   (loop for object in (send self :object-list) do
-        (if* (and (not (send object :spans-whole-string?)) 
+        (if* (and (not (send object :spans-whole-string?))
 		  (null (send object :group)))
-         then (setq num-of-bonds 
-	            (length (append (send object :incoming-bonds) 
+         then (setq num-of-bonds
+	            (length (append (send object :incoming-bonds)
 		                    (send object :outgoing-bonds))))
               (if* (or (send object :leftmost-in-string?)
 	               (send object :rightmost-in-string?))
@@ -265,7 +265,7 @@
   result)
 ;---------------------------------------------
 
-(defmethod (workspace :ungrouped-objects) ()    
+(defmethod (workspace :ungrouped-objects) ()
 ; Returns a list of all the objects on the workspace that are not in a group.
   (loop for object in (send self :object-list)
 	when (and (not (send object :spans-whole-string?))
@@ -273,7 +273,7 @@
 
 ;---------------------------------------------
 
-(defmethod (workspace :ungrouped-bonds) ()    
+(defmethod (workspace :ungrouped-bonds) ()
 ; Returns a list of all the bonds on the workspace that are not in groups.
 ; A bond which is not in a group but both of whose objects are in groups
 ; is considered to be grouped.
@@ -284,16 +284,16 @@
 
 ;---------------------------------------------
 
-(defmethod (workspace :unreplaced-objects) ()    
-; Returns a list of all the objects on the initial-string that 
+(defmethod (workspace :unreplaced-objects) ()
+; Returns a list of all the objects on the initial-string that
 ; don't have a replacement.
   (loop for letter in (send *initial-string* :letter-list)
 	when (null (send letter :replacement)) collect letter))
 
 ;---------------------------------------------
 
-(defmethod (workspace :uncorresponding-objects) ()    
-; Returns a list of all the objects on the workspace that 
+(defmethod (workspace :uncorresponding-objects) ()
+; Returns a list of all the objects on the workspace that
 ; don't have a correspondence.
   (loop for object in (send self :object-list)
 	when (null (send object :correspondence)) collect object))
@@ -309,7 +309,7 @@
   (cond ((< n (blur 2)) 'few)
 	((< n (blur 4)) 'medium)
 	(t 'many)))
-	
+
 ;---------------------------------------------
 
 (defmethod (workspace :rough-num-of-ungrouped-objects) (&aux n)
@@ -321,7 +321,7 @@
   (cond ((< n (blur 2)) 'few)
 	((< n (blur 4)) 'medium)
 	(t 'many)))
-	
+
 ;---------------------------------------------
 
 (defmethod (workspace :rough-num-of-unreplaced-objects) (&aux n)
@@ -333,22 +333,22 @@
   (cond ((< n (blur 2)) 'few)
 	((< n (blur 4)) 'medium)
 	(t 'many)))
-	
+
 ;---------------------------------------------
 
 (defmethod (workspace :rough-num-of-uncorresponding-objects) (&aux n)
 ; Returns either 'few, 'medium, or 'many.  This method is used for
 ; "self-watching" in the function "get-num-of-codelets-to-post" in the file
-; "formulas.l" -- for deciding the number of correspondence-scout codelets 
+; "formulas.l" -- for deciding the number of correspondence-scout codelets
 ; that should be posted.
   (setq n (length (send self :uncorresponding-objects)))
   (cond ((< n (blur 2)) 'few)
 	((< n (blur 4)) 'medium)
 	(t 'many)))
-	
+
 ;---------------------------------------------
 
-(defmethod (workspace :rough-importance-of-uncorresponding-objects) 
+(defmethod (workspace :rough-importance-of-uncorresponding-objects)
            (&aux uncorresponding-objects n)
 ; Returns either 'low, 'medium, or 'high.
   (setq uncorresponding-objects (send self :uncorresponding-objects))
@@ -359,15 +359,15 @@
         (cond ((< n (blur 20)) 'low)
 	      ((< n (blur 40)) 'medium)
 	      (t 'high))))
-	
+
 ;---------------------------------------------
 
 (defmethod (workspace :delete-proposed-structure) (s)
 ; Deletes the given proposed structure from the workspace.
-  (cond ((typep s 'bond) 
-	 (send (send s :string) :delete-proposed-bond s))    
+  (cond ((typep s 'bond)
+	 (send (send s :string) :delete-proposed-bond s))
 	((typep s 'group) (send (send s :string) :delete-proposed-group s))
-	((typep s 'correspondence) 
+	((typep s 'correspondence)
 	 (send self :delete-proposed-correspondence s))))
 
 ;---------------------------------------------
@@ -376,12 +376,12 @@
 ; Returns a list of all the slippages in all the correspondences.
   (flatten (send-method-to-list (send self :correspondence-list)
 	                        :slippage-list)))
-	
+
 ;---------------------------------------------
 
 (defmethod (workspace :intra-string-unhappiness) ()
 ; Returns a weighted average of the intra-string unhappiness of objects
-; on the workspace (weighted by each object's relative importance in the 
+; on the workspace (weighted by each object's relative importance in the
 ; string.
   (min 100 (/ (loop for obj in (send self :object-list)
                     sum (* (send obj :relative-importance)
@@ -391,7 +391,7 @@
 
 (defmethod (workspace :inter-string-unhappiness) ()
 ; Returns a weighted average of the inter-string unhappiness of objects
-; on the workspace (weighted by each object's relative importance in the 
+; on the workspace (weighted by each object's relative importance in the
 ; string.
   (min 100 (/ (loop for obj in (send self :object-list)
                     sum (* (send obj :relative-importance)
@@ -401,7 +401,7 @@
 
 (defmethod (workspace :total-unhappiness) ()
 ; Returns a weighted average of the total unhappiness of objects
-; on the workspace, weighted by each object's relative importance in the 
+; on the workspace, weighted by each object's relative importance in the
 ; string.
   (min 100 (/ (loop for obj in (send self :object-list)
                     sum (* (send obj :relative-importance)

@@ -1,8 +1,8 @@
 ;---------------------------------------------
 ; UTIL: This file contains utilities for Copycat.
-;--------------------------------------------- 
+;---------------------------------------------
 
-(in-package 'user)
+(in-package :copycat)
 
 ;---------------------------------------------
 
@@ -11,10 +11,10 @@
 ;---------------------------------------------
 
 (defun select-list-position (list &aux (sum 0) (value 0))
-; LIST is a list of integers. Probabilistically chooses one of the 
-; integers on the list according to value. Returns the position of that 
+; LIST is a list of integers. Probabilistically chooses one of the
+; integers on the list according to value. Returns the position of that
 ; integer.
-  (if* list 
+  (if* list
    then (setq sum (loop for item in list sum item))
         (if* (<= sum 0)
          then (random (length list))
@@ -26,15 +26,15 @@
 	               (setq counter (1+ counter))
 	            when (> newsum value)
 	            return (1- counter)))
-   else nil))	
+   else nil))
 
 ;---------------------------------------------
 
 (defun select-assoc (list &aux (sum 0) (value 0))
-; LIST is an assoc-list of the form 
+; LIST is an assoc-list of the form
 ;       ((item . probability) (item . probability) . . .)
 ; Returns one of the items, chosen probabilistically.
-  (if* list 
+  (if* list
    then (setq sum (loop for pair in list sum (cdr pair)))
         (if* (<= sum 0)
          then nil
@@ -51,20 +51,20 @@
 (defun random-list-item (list)
 ; Returns a randomly chosen item in the list.
   (if* list then (nth (random (length list)) list) else nil))
- 
+
 ;---------------------------------------------
 
 (defun select-list-item-by-method (list method &optional argument)
 ; Applies the method to the list to get a list of numbers.
 ; Probabilisticallly selects a position in the list of numbers
 ; and returns the item at that position in the original list.
-  (if* (null list) 
+  (if* (null list)
    then nil
    else (if* argument
-         then (nth (select-list-position 
+         then (nth (select-list-position
 		       (send-method-to-list list method argument))
 		   list)
-         else (nth (select-list-position (send-method-to-list list method)) 
+         else (nth (select-list-position (send-method-to-list list method))
 		   list))))
 
 ;---------------------------------------------
@@ -105,19 +105,19 @@
 ; Returns a number between 0 and 100, choosing probabilistically
 ; according to the given distribution.
   (select-list-position (vector-to-list probability-vector)))
-         
+
 ;---------------------------------------------
 
 ; STRUCTURE-COMPETITION FUNCTIONS
 
 ;---------------------------------------------
 
-(defun structure-vs-structure (structure1 weight1 structure2 weight2 
+(defun structure-vs-structure (structure1 weight1 structure2 weight2
 			       &aux strength-list adjusted-strength-list)
 ; Chooses probabilistically between the two structures, based on their
-; strengths and the given weights.  Returns t if structure1 wins, nil if 
+; strengths and the given weights.  Returns t if structure1 wins, nil if
 ; structure2 wins.
-  (if* %verbose% 
+  (if* %verbose%
    then (format t "In structure-vs-structure with structures:  ")
         (send structure1 :print) (send structure2 :print)
 	(format t "and weights ~a and ~a~&" weight1 weight2))
@@ -125,14 +125,14 @@
   (send structure2 :update-strength-values)
   (setq strength-list (list (* (send structure1 :total-strength) weight1)
 			    (* (send structure2 :total-strength) weight2)))
-  (setq adjusted-strength-list 
+  (setq adjusted-strength-list
 	(get-temperature-adjusted-value-list strength-list))
-  (if* %verbose% 
-   then (format t "Strength-list: ~a; adjusted-strength-list: ~a~&" 
+  (if* %verbose%
+   then (format t "Strength-list: ~a; adjusted-strength-list: ~a~&"
 	        strength-list adjusted-strength-list))
 
   (nth (select-list-position adjusted-strength-list) '(t nil)))
-  
+
 ;---------------------------------------------
 
 (defun fight-it-out (structure structure-weight structure-list list-weight)
@@ -141,7 +141,7 @@
 ; Returns t if the structure wins over all the structures in structure-list.
 ; Otherwise, returns nil.
   (loop for competing-structure in structure-list
-        when (null (structure-vs-structure structure structure-weight 
+        when (null (structure-vs-structure structure structure-weight
 		                           competing-structure list-weight))
         return nil
   	finally (return t)))
@@ -179,7 +179,7 @@
 
 (defun aset (array &rest args &aux indices item)
   (setq indices (butlast args))
-  (setq item (car (last args)))    
+  (setq item (car (last args)))
   (setf (apply #'aref array indices) item))
 
 ;---------------------------------------------
@@ -209,7 +209,7 @@
 	(loop for j from (1- (array-columns a)) downto 0 do
 	      (push (aref a i j) l)))
   l)
-	      
+
 ;---------------------------------------------
 
 (defun vector-sum (v)
@@ -228,10 +228,10 @@
 ;---------------------------------------------
 
 (defun flip-coin (&optional (prob-of-heads .5))
-; Returns heads or tails.  If no argument, probability of each is .5, 
-; otherwise, probability of heads is equal to the argument (which is 
+; Returns heads or tails.  If no argument, probability of each is .5,
+; otherwise, probability of heads is equal to the argument (which is
 ; assumed to be between 0 and 1).
-  (if* (>= prob-of-heads 1) 
+  (if* (>= prob-of-heads 1)
    then 'heads
    else (select-assoc `((heads . ,(round (* prob-of-heads 1000)))
 	   	        (tails . ,(round (* (- 1 prob-of-heads) 1000)))))))
@@ -324,7 +324,7 @@
 ;---------------------------------------------
 
 (defun list-eq (l1 l2)
-; Returns t if the two lists are (in order) pairwise eq. Returns nil 
+; Returns t if the two lists are (in order) pairwise eq. Returns nil
 ; otherwise.
   (not (mismatch l1 l2)))
 
@@ -337,53 +337,56 @@
 ;---------------------------------------------
 
 (defun weighted-average (value-weight-list)
-; Returns the weighted arithmetic mean of its arguments.  The 
-; value-weight-list is of the form 
+; Returns the weighted arithmetic mean of its arguments.  The
+; value-weight-list is of the form
 ;          ((value1 . weight1) (value2 . weight2) ...)
   (loop for value-weight in value-weight-list
 	sum (* (car value-weight) (cdr value-weight)) into value-sum
-	sum (cdr value-weight) into weight-sum 
+	sum (cdr value-weight) into weight-sum
 	finally (return (round (/ value-sum weight-sum)))))
 
 ;---------------------------------------------
 
 (defun send-method-to-list (list method &rest arg)
-; Sends the given method to each item on the list and returns a list of the 
-; results.  (Note that at present, this only works for methods with at most 1 
+; Sends the given method to each item on the list and returns a list of the
+; results.  (Note that at present, this only works for methods with at most 1
 ; argument.)
   (if* arg
-   then 
-        (loop for item in list 
+   then
+        (loop for item in list
 	      if (null item) collect nil into value-list
-	      else collect (send item (eval method) (car arg)) 
+	      else collect (send item (eval method) (car arg))
 	           into value-list
 	      finally (return value-list))
    else
-        (loop for item in list 
+        (loop for item in list
 	      if (null item) collect nil into value-list
 	      else collect (send item (eval method)) into value-list
 	      finally (return value-list))))
-    
+
 
 ;---------------------------------------------
 
+;;; [SLB] These "pause" functions were spin loops.  I'm just guessing they took
+;;; somewhere around 1 µs/iteration on 1990 hardware.  They're called only by
+;;; the graphics code, anyway.
 (defun quick-pause ()
-    (loop for i from 1 to 1000 do ()))
+  (sleep .001))
 
 ;---------------------------------------------
 
 (defun medium-pause ()
-    (loop for i from 1 to 100000 do ()))
+  (sleep .1))
 
 ;---------------------------------------------
 
 (defun long-pause ()
-    (loop for i from 1 to 200000 do ()))
+  (sleep .2))
 
 ;---------------------------------------------
 
 (defun very-long-pause ()
-    (loop for i from 1 to 10 do (long-pause)))
+  (sleep 2))
 
 ;---------------------------------------------
 
@@ -465,25 +468,25 @@
 
 (defun get-plato-letter (letter-name)
 ; Returns the slipnode corresponding to the given letter name.
-  (eval (append-symbols 'plato- letter-name)))
+  (symbol-value (append-symbols 'plato- letter-name)))
 
 ;---------------------------------------------
 
 (defun get-plato-number (n)
   (case n
-      (1 plato-one)      
-      (2 plato-two)      
-      (3 plato-three)      
-      (4 plato-four)      
+      (1 plato-one)
+      (2 plato-two)
+      (3 plato-three)
+      (4 plato-four)
       (5 plato-five)))
 
 ;---------------------------------------------
 
 (defun node-to-number (node)
   (cond ((eq node plato-one) 1)
-        ((eq node plato-two) 2)      
-        ((eq node plato-three) 3)      
-        ((eq node plato-four) 4)      
+        ((eq node plato-two) 2)
+        ((eq node plato-three) 3)
+        ((eq node plato-four) 4)
         ((eq node plato-five) 5)))
 
 ;---------------------------------------------
@@ -513,22 +516,22 @@
 ;---------------------------------------------
 
 (defun send-iobjs (message &optional arg)
-  (if* arg 
+  (if* arg
    then (send-method-to-list (send *initial-string* :object-list) message arg)
    else (send-method-to-list (send *initial-string* :object-list) message)))
 
 ;---------------------------------------------
 
 (defun send-tobjs (message &optional arg)
-  (if* arg 
+  (if* arg
    then (send-method-to-list (send *target-string* :object-list) message arg)
    else (send-method-to-list (send *target-string* :object-list) message)))
 
 ;---------------------------------------------
 
 (defun sml (list method &optional arg)
-  (if* arg 
-   then (send-method-to-list list method arg)   
+  (if* arg
+   then (send-method-to-list list method arg)
    else (send-method-to-list list method)))
 
 ;---------------------------------------------
@@ -552,4 +555,3 @@
   (nth n random-state-list))
 
 ;---------------------------------------------
-

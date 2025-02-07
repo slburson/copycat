@@ -3,7 +3,7 @@
 ;             from runs of the Copycat program.
 ;---------------------------------------------
 
-(in-package 'user)
+(in-package :copycat)
 
 (proclaim '(special *run-number* *data-file* *verbose-data-file* 
 	            *random-state-file*))
@@ -182,7 +182,7 @@
     
   ; Now sort the answer-summary-list by frequency.
   (setq sorted-answer-summary-list 
-	(sort answer-summary-list #'> :key '(lambda (x) (send x :frequency))))
+	(sort answer-summary-list #'> :key (lambda (x) (send x :frequency))))
 
   ; Now get initial-string, modified-string, and target-string.
   (setq hyphen-pos (position '#\- input-file))

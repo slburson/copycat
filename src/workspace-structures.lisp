@@ -1,13 +1,13 @@
 ;---------------------------------------------
-; WORKSPACE-STRUCTURES: This file contains flavor definitions and functions 
-;                        for workspace structures.  These include 
-;                        descriptions, bonds, groups, replacements, and 
-;                        correspondences.  
+; WORKSPACE-STRUCTURES: This file contains flavor definitions and functions
+;                        for workspace structures.  These include
+;                        descriptions, bonds, groups, replacements, and
+;                        correspondences.
 ;---------------------------------------------
 
-(in-package 'user)
+(in-package :copycat)
 
-(defflavor workspace-structure 
+(defflavor workspace-structure
     (string ; The string the structure is in.
      structure-category ; E.g., 'bond or 'group.
      (group nil)  ; T if the structure (e.g., a bond) is inside a group.
@@ -17,4 +17,3 @@
     :gettable-instance-variables
     :settable-instance-variables
     :initable-instance-variables)
-

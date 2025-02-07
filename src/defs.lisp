@@ -1,0 +1,286 @@
+(in-package :cl-user)
+
+(defpackage :copycat
+  (:use :cl)
+  (:shadow #:defmethod))
+
+(in-package :copycat)
+
+; Proclaim constants and global variables.
+(proclaim 
+    '(special 
+         ; WORKSPACE CONSTANTS AND GLOBAL VARIABLES
+	 *initial-string* *modified-string* *target-string* *answer-string* 
+	 *rule* *translated-rule* *snag-structure-list* *workspace* 
+	 %length-description-probability-vector%
+	 %very-low-answer-temperature-threshold-distribution% 
+	 %low-answer-temperature-threshold-distribution% 
+	 %medium-answer-temperature-threshold-distribution% 
+         %high-answer-temperature-threshold-distribution% 
+         %very-high-answer-temperature-threshold-distribution% 
+         *codelet-count* *temperature* *codelets-to-post* *found-answer*
+         *snag-condition* *snag-count* *single-letter-group-count*
+	 *single-letter-group-at-end-count* *length-description-count*
+	 *length-relevant-at-end*
+	 *clamp-temperature* *snag-object*
+	 *last-snag-time* *quit-program* 
+	 *updating-everything* *i* *m* *t* *a* %built%
+ 	 *modified-letter-list* *changed-length-group* 
+	 *amount-length-changed*
+	 *break-on-each-step*
+
+         ; CODERACK CONSTANTS AND GLOBAL VARIABLES
+         *coderack* %codelet-types% %codelet-short-names%  
+	 %max-coderack-size%
+         %coderack-bin-names% %urgency-value-array% %num-of-urgency-bins%
+         *coderack-bins* *extremely-low-bin* *very-low-bin* *low-bin* 
+	 *medium-bin* *high-bin* *very-high-bin* *extremely-high-bin* 
+         *urgency-list* *codelet-list*
+         
+         ; SLIPNET CONSTANTS AND GLOBAL VARIABLES
+         plato-one plato-two plato-three plato-four plato-five 
+	 %max-activation%  %workspace-activation% 
+         %initial-slipnode-clamp-time% %full-activation-threshold%
+         plato-string-position-category 
+	 plato-sameness plato-object-category 
+	 plato-letter-category  
+         plato-leftmost plato-rightmost plato-middle
+         *initially-clamped-slipnodes* plato-a plato-b  plato-c plato-d
+         plato-e plato-f plato-g plato-h plato-i plato-j plato-k plato-l 
+         plato-m plato-n plato-o plato-p plato-q plato-r plato-s plato-t
+         plato-u plato-v plato-w plato-x plato-y plato-z 
+	 plato-length
+         plato-alphabetic-position-category 
+         plato-direction-category plato-bond-category plato-group-category 
+         plato-letter plato-group plato-first plato-last 
+	 plato-single plato-whole plato-left plato-right 
+         plato-predecessor plato-successor plato-predgrp 
+	 plato-succgrp plato-samegrp plato-identity plato-opposite
+	 plato-bond-facet *slipnet-letters* *slipnet-numbers* *slipnet*
+	 *nodes-to-display* 
+	 a-letter-category-link z-letter-category-link
+	 1-length-link 2-length-link
+	 samegrp-letter-category-link predgrp-length-link
+	 succgrp-length-link samegrp-length-link
+	 first-last-link last-first-link 
+         leftmost-rightmost-link rightmost-leftmost-link left-right-link 
+	 right-left-link predgrp-succgrp-link
+         successor-predecessor-link predecessor-successor-link
+	 succgrp-predgrp-link a-first-link  z-last-link  
+         letter-object-category-link object-category-letter-link
+         group-object-category-link object-category-group-link
+         leftmost-string-position-category-link
+         string-position-category-leftmost-link 
+         rightmost-string-position-category-link
+         string-position-category-rightmost-link 
+         middle-string-position-category-link
+         string-position-category-middle-link
+         single-whole-link whole-single-link
+         string-position-category-single-link  
+         single-string-position-category-link
+         string-position-category-whole-link  
+         whole-string-position-category-link
+         first-alphabetic-position-category-link 
+         alphabetic-position-category-first-link
+         last-alphabetic-position-category-link 
+         alphabetic-position-category-last-link
+         left-direction-category-link direction-category-left-link
+         right-direction-category-link direction-category-right-link
+         predecessor-bond-category-link bond-category-predecessor-link 
+         successor-bond-category-link bond-category-successor-link 
+         sameness-bond-category-link bond-category-sameness-link  
+         predgrp-group-category-link
+	 group-category-predgrp-link succgrp-group-category-link 
+         group-category-succgrp-link samegrp-group-category-link 
+         group-category-samegrp-link sameness-samegrp-link 
+         samegrp-sameness-link 
+         successor-succgrp-link succgrp-successor-link 
+         predecessor-predgrp-link predgrp-predecessor-link
+         letter-category-bond-facet-link bond-facet-letter-category-link 
+         length-bond-facet-link bond-facet-length-link 
+         letter-category-length-link 
+         length-letter-category-link
+	 letter-group-link group-letter-link left-leftmost-link
+         leftmost-left-link right-leftmost-link leftmost-right-link 
+	 right-rightmost-link rightmost-right-link leftmost-first-link 
+	 first-leftmost-link rightmost-first-link first-rightmost-link
+	 leftmost-last-link last-leftmost-link rightmost-last-link 
+	 last-rightmost-link left-rightmost-link rightmost-left-link
+         indent visited-nodes 
+
+         ; GRAPHICS CONSTANTS AND GLOBAL VARIABLES 
+         %slipnet-font% %slipnet-letter-font% 
+	 %slipnet-activation-font% %workspace-font% %group-font% 
+	 %rule-font% 
+	 %relevant-concept-mapping-font%  %irrelevant-concept-mapping-font% 
+         %coderack-font% %codelet-name-font% 	%minimal-coderack-font%
+         *old-minimal-coderack-string* %relevant-description-font% 
+	 %irrelevant-description-font% %relevant-length-font% 
+	 %irrelevant-length-font% %temperature-font% %codelet-group-font%
+         %codelet-name-font-height% %group-font-height%
+         %slipnet-font-height% %slipnet-activation-font-height%  
+	 %relevant-concept-mapping-font-height%
+	 %graphics-rate% *description-graphics-obj-list*
+         %window-width% %window-height% 
+         %slipnet-x% %slipnet-y% 
+         %slipnet-width% 
+         %slipnet-height% 
+         slipnode-region-height 
+         slipnode-region-width 
+         *slipnode-boxsizes* 
+         %rule-mode% %translated-rule-mode%
+         %coderack-x1% %coderack-y1% %coderack-x2% 
+	 %coderack-y2% 
+         *coderack-bar-graph* *waiting-codelets-string* 
+         %waiting-codelets-string-x% %waiting-codelets-string-y% 
+	 %minimal-coderack-x% %minimal-coderack-y% %minimal-coderack-string%
+         %space-between-descriptions%  %light-intensity% %medium-intensity% 
+	 %jag-length% %long-bond-dash-length% %medium-bond-dash-length%
+         %short-bond-dash-length%
+         %long-bond-space-length% %medium-bond-space-length%
+         %short-bond-space-length%
+         %group-space-length%
+         %bond-left-x-offset% %bond-right-x-offset% %bond-y-offset%
+         %concept-mapping-x-offset%  %concept-mapping-y-offset% 
+         %group-concept-mapping-y-offset% 
+         %string-spanning-group-concept-mapping-x-offset% 
+         %string-spanning-group-concept-mapping-y-offset% 
+         %vertical-jag-length%   
+         %short-correspondence-dash-length% 
+         %long-correspondence-dash-length% 
+         %correspondence-space-length% 
+         %space-between-concept-mappings% 
+         %concept-mapping-text-width%
+         %arrow-x% %origin-x% %origin-y%
+         %arrow-width% %left-side-space% %right-side-space% %middle-space% 
+         %string-width% %initial-space% 
+         %modified-space% %target-space% %answer-space% 
+         %y-top% %y-bottom% 
+         %rule-y% %translated-rule-y% 
+         %replacement-x-offset% %replacement-y-offset% 
+         %left-concept-mapping-x-offset% 
+         %right-concept-mapping-x-offset% 
+         %left-group-concept-mapping-x-offset% 
+         %right-group-concept-mapping-x-offset% 
+         %initial-x% %modified-x% %target-x% %answer-x% 
+         %temperature-display-width% 
+         %temperature-display-height% 
+         %temperature-number-x% *old-temperature-string* *old-temperature-y*
+         %heavy-intensity% 
+         %short-group-dash-length% %long-group-dash-length% 
+         long-correspondence-dash-length% 
+         %correspondence-short-space% 
+         %horizontal-jag-length% 
+         i-vector m-vector t-vector
+         %codelet-name-top-y% %codelet-name-bottom-y%
+         %temperature-display-x1% 
+         %temperature-display-y1% 
+         %temperature-display-x2% 
+         %temperature-display-y2% 
+         *temperature-height* 
+
+         ; OTHER CONSTANTS AND GLOBAL VARIABLES
+         %verbose% %slightly-verbose% 
+         %demo-graphics% %workspace-graphics% 
+	 %coderack-graphics% 
+         %minimal-coderack-graphics%
+	 %slipnet-graphics% %slipnet-display-level%
+         %description-graphics% 
+         *workspace-initialized* *coderack-initialized* 
+	 *slipnet-initialized*
+         %temperature-graphics%  *init-time-menu* 
+         *run-time-menu* *begin-run-time-menu* 
+         %time-step-length% *random-state-this-run*
+	 *data-file* *random-state-file* *summary-file*))
+
+
+;;; Implementation of just enough Flavors functionality to run this code.
+
+;;; I _think_ it's the case that the code only ever uses `send' to invoke methods,
+;;; never `funcall', which if true means that this funcallable-instance stuff is
+;;; superfluous.  But might as well do it anyway, just in case there's a `funcall'
+;;; or `apply' somewhere, or we want to add one.
+#+allegro (eval-when (:compile-toplevel :load-toplevel :execute)
+	    (unless (c2mop:class-finalized-p (find-class 'c2mop:funcallable-standard-object))
+	      (c2mop:finalize-inheritance (find-class 'c2mop:funcallable-standard-object))))
+
+(defclass flavor-object () ())
+
+(cl:defmethod print-object ((obj flavor-object) stream)
+  ;; Not really the right way to do this -- the `:print' methods should take a stream.
+  (let ((*standard-output* stream))
+    (funcall obj :print)))
+
+(defmacro defflavor (flavor slots supers &rest options)
+  `(progn
+     (defclass ,flavor
+	 #-allegro ,supers #+allegro ,(append supers '(c2mop:funcallable-standard-object))
+	 (,@(mapcar (lambda (slot)
+		      (let ((name (if (consp slot) (car slot) slot))
+			    (init-val (and (consp slot) (cadr slot))))
+			`(,name :initform ,init-val
+				,@(and (member ':initable-instance-variables options)
+				       `(:initarg (intern name (symbol-package ':initarg)))))))
+		    slots)
+	  (%method-table :initform (make-hash-table :test 'eq)
+			 :reader %method-table
+			 :allocation :class))
+	 (:metaclass c2mop:funcallable-standard-class))
+     (cl:defmethod initialize-instance :after (obj &rest initargs &key &allow-other-keys)
+       (c2mop:set-funcallable-instance-function
+	 obj
+	 (lambda (&rest args) (apply #'%send obj args))))
+     ,@(and (member ':gettable-instance-variables options)
+	    (mapcar (lambda (slot)
+		      (let* ((name (if (consp slot) (car slot) slot))
+			     (kwd-name (intern (string name) (symbol-package ':test))))
+			`(%define-method ',flavor ',kwd-name
+					 (lambda (self)
+					   (declare (type ,flavor self))
+					   (slot-value self ',name)))))
+		    slots))
+     . ,(and (member ':settable-instance-variables options)
+	     (mapcar (lambda (slot)
+		      (let* ((name (if (consp slot) (car slot) slot))
+			     (kwd-name (intern (concatenate 'string (string '#:set-) (string name))
+					       (symbol-package ':test))))
+			`(%define-method ',flavor ',kwd-name
+					 (lambda (self value)
+					   (declare (type ,flavor self))
+					   (setf (slot-value self ',name) value)))))
+		     slots))))
+
+(defmacro defmethod ((flavor method) params &body body)
+  (let ((cls-obj (find-class flavor)))
+    (unless (c2mop:class-finalized-p cls-obj)
+      (c2mop:finalize-inheritance cls-obj))
+    (let ((slot-names
+	    (remove nil (mapcar (lambda (slot)
+				  (and (eq (c2mop:slot-definition-allocation slot) ':instance)
+				       (c2mop:slot-definition-name slot)))
+				(class-slots cls-obj)))))
+      `(%define-method flavor method
+		       (lambda (self . ,params)
+			 (declare (type ,flavor self))
+			 (with-slots ,slot-names self
+			   . ,body))))))
+
+(defun %define-method (flavor method-name func)
+  (let* ((cls (find-class flavor))
+	 (mtbl (%method-table (c2mop:class-prototype cls))))
+    (setf (gethash method-name mtbl) func)))
+
+(defun %send (obj method &rest args)
+  ;; This implementation walks the inheritance DAG at dispatch time rather than having
+  ;; `%define-method' add methods to subclasses.  The latter would be faster, but might
+  ;; make consistency a little harder to maintain.  Maybe I'll change it later.
+  (labels ((find-method (obj method)
+	     (and (not (eq (class-name (class-of obj)) 'standard-object))
+		  (or (gethash method (%method-table obj))
+		      (some (lambda (sup) (find-method (c2mop:class-prototype sup) method))
+			    (c2mop:class-direct-superclasses (class-of obj)))))))
+    (let ((func (find-method obj)))
+      (unless func
+	(error "Object ~A does not have method ~S" obj method))
+      (apply func obj args))))
+
