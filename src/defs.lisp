@@ -204,7 +204,18 @@
 	    (unless (c2mop:class-finalized-p (find-class 'c2mop:funcallable-standard-object))
 	      (c2mop:finalize-inheritance (find-class 'c2mop:funcallable-standard-object))))
 
-(defclass flavor-object () ())
+(defclass flavor-class (c2mop:funcallable-standard-class)
+    ((flavor-method-table :initform (make-hash-table :test 'eq) :reader flavor-method-table)))
+
+(cl:defmethod c2mop:validate-superclass ((c flavor-class) (sc c2mop:funcallable-standard-class))
+  t)
+
+(defclass flavor-object (#+allegro c2mop:funcallable-standard-object) ()
+  (:metaclass flavor-class))
+
+(cl:defmethod initialize-instance :after ((obj flavor-object) &rest initargs &key &allow-other-keys)
+  (declare (ignore initargs))
+  (c2mop:set-funcallable-instance-function obj (lambda (&rest args) (apply #'%send obj args))))
 
 (cl:defmethod print-object ((obj flavor-object) stream)
   ;; Not really the right way to do this -- the `:print' methods should take a stream.
@@ -213,23 +224,15 @@
 
 (defmacro defflavor (flavor slots supers &rest options)
   `(progn
-     (defclass ,flavor
-	 #-allegro ,supers #+allegro ,(append supers '(c2mop:funcallable-standard-object))
-	 (,@(mapcar (lambda (slot)
-		      (let ((name (if (consp slot) (car slot) slot))
-			    (init-val (and (consp slot) (cadr slot))))
-			`(,name :initform ,init-val
-				,@(and (member ':initable-instance-variables options)
-				       `(:initarg (intern name (symbol-package ':initarg)))))))
-		    slots)
-	  (%method-table :initform (make-hash-table :test 'eq)
-			 :reader %method-table
-			 :allocation :class))
-	 (:metaclass c2mop:funcallable-standard-class))
-     (cl:defmethod initialize-instance :after (obj &rest initargs &key &allow-other-keys)
-       (c2mop:set-funcallable-instance-function
-	 obj
-	 (lambda (&rest args) (apply #'%send obj args))))
+     (defclass ,flavor ,(append supers '(flavor-object))
+	 ,(mapcar (lambda (slot)
+		    (let ((name (if (consp slot) (car slot) slot))
+			  (init-val (and (consp slot) (cadr slot))))
+		      `(,name :initform ,init-val
+			      ,@(and (member ':initable-instance-variables options)
+				     `(:initarg ,(intern (string name) (symbol-package ':initarg)))))))
+	          slots)
+	 (:metaclass flavor-class))
      ,@(and (member ':gettable-instance-variables options)
 	    (mapcar (lambda (slot)
 		      (let* ((name (if (consp slot) (car slot) slot))
@@ -239,16 +242,17 @@
 					   (declare (type ,flavor self))
 					   (slot-value self ',name)))))
 		    slots))
-     . ,(and (member ':settable-instance-variables options)
-	     (mapcar (lambda (slot)
-		      (let* ((name (if (consp slot) (car slot) slot))
-			     (kwd-name (intern (concatenate 'string (string '#:set-) (string name))
-					       (symbol-package ':test))))
-			`(%define-method ',flavor ',kwd-name
-					 (lambda (self value)
-					   (declare (type ,flavor self))
-					   (setf (slot-value self ',name) value)))))
-		     slots))))
+     ,@(and (member ':settable-instance-variables options)
+	    (mapcar (lambda (slot)
+		     (let* ((name (if (consp slot) (car slot) slot))
+			    (kwd-name (intern (concatenate 'string (string '#:set-) (string name))
+					      (symbol-package ':test))))
+		       `(%define-method ',flavor ',kwd-name
+					(lambda (self value)
+					  (declare (type ,flavor self))
+					  (setf (slot-value self ',name) value)))))
+		    slots))
+     ',flavor))
 
 (defmacro defmethod ((flavor method) params &body body)
   (let ((cls-obj (find-class flavor)))
@@ -258,8 +262,8 @@
 	    (remove nil (mapcar (lambda (slot)
 				  (and (eq (c2mop:slot-definition-allocation slot) ':instance)
 				       (c2mop:slot-definition-name slot)))
-				(class-slots cls-obj)))))
-      `(%define-method flavor method
+				(c2mop:class-slots cls-obj)))))
+      `(%define-method ',flavor ',method
 		       (lambda (self . ,params)
 			 (declare (type ,flavor self))
 			 (with-slots ,slot-names self
@@ -267,20 +271,26 @@
 
 (defun %define-method (flavor method-name func)
   (let* ((cls (find-class flavor))
-	 (mtbl (%method-table (c2mop:class-prototype cls))))
+	 (mtbl (flavor-method-table cls)))
     (setf (gethash method-name mtbl) func)))
 
 (defun %send (obj method &rest args)
   ;; This implementation walks the inheritance DAG at dispatch time rather than having
   ;; `%define-method' add methods to subclasses.  The latter would be faster, but might
   ;; make consistency a little harder to maintain.  Maybe I'll change it later.
-  (labels ((find-method (obj method)
-	     (and (not (eq (class-name (class-of obj)) 'standard-object))
-		  (or (gethash method (%method-table obj))
-		      (some (lambda (sup) (find-method (c2mop:class-prototype sup) method))
-			    (c2mop:class-direct-superclasses (class-of obj)))))))
-    (let ((func (find-method obj)))
-      (unless func
-	(error "Object ~A does not have method ~S" obj method))
-      (apply func obj args))))
+  (let ((func (dolist (cls (c2mop:class-precedence-list (class-of obj)))
+		(when (eq (class-name (class-of obj))
+			  #-allegro 'standard-object
+			  #+allegro 'c2mop:funcallable-standard-object)
+		  (return nil))		; (from `dolist')
+		(let ((f (gethash method (flavor-method-table cls))))
+		  (when f
+		    (return f))))))
+    (unless func
+      (error "Object ~A does not have method ~S" obj method))
+    (apply func obj args)))
+
+(declaim (inline send))
+(defun send (obj method &rest args)
+  (apply obj method args))
 
