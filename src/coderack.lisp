@@ -27,7 +27,7 @@
   (with-open-file
       (ostream output-file :direction :output
 	  :if-exists :append :if-does-not-exist :create)
-  (format ostream "codelet-type: ~a~&" codelet-type)))
+    (format ostream "codelet-type: ~a~&" codelet-type)))
 
 ;---------------------------------------------
 
@@ -283,6 +283,30 @@
   (send bin :set-fill-pointer (1+ (send bin :fill-pointer)))
   (push codelet *codelet-list*)
   (send self :add-codelet-to-graphics codelet))
+
+;---------------------------------------------
+
+;;; [SLB] Moved here from `graphics/coderack-graphics.lisp'.
+(defmethod (coderack :add-codelet-to-graphics)
+           (codelet &aux codelet-number urgency-bin)
+  (setq codelet-number (get-codelet-number (send codelet :codelet-type)))
+  (setq urgency-bin (send codelet :urgency-bin))
+  (aset codelet-urgency-array
+	codelet-number (send urgency-bin :urgency-code)
+        (1+ (aref codelet-urgency-array codelet-number
+		  (send urgency-bin :urgency-code)))))
+
+;---------------------------------------------
+
+;;; [SLB] Moved here from `graphics/coderack-graphics.lisp'.
+(defmethod (coderack :delete-codelet-from-graphics)
+           (codelet &aux codelet-number urgency-bin)
+  (setq codelet-number (get-codelet-number (send codelet :codelet-type)))
+  (setq urgency-bin (send codelet :urgency-bin))
+  (aset codelet-urgency-array
+	codelet-number (send urgency-bin :urgency-code)
+        (1- (aref codelet-urgency-array codelet-number
+		  (send urgency-bin :urgency-code)))))
 
 ;---------------------------------------------
 

@@ -75,29 +75,6 @@
       %coderack-x1% %coderack-y1%
       (+ %coderack-x2% 2)
       (+ (send *coderack-bar-graph* :name-y) (* 3 %codelet-name-font-height%))))
-
-;---------------------------------------------
-
-(defmethod (coderack :add-codelet-to-graphics) 
-           (codelet &aux codelet-number urgency-bin)
-
-  (setq codelet-number (get-codelet-number (send codelet :codelet-type)))
-  (setq urgency-bin (send codelet :urgency-bin))
-  (aset codelet-urgency-array 
-	codelet-number (send urgency-bin :urgency-code)
-        (1+ (aref codelet-urgency-array codelet-number 
-		  (send urgency-bin :urgency-code)))))
-                               
-;---------------------------------------------
-
-(defmethod (coderack :delete-codelet-from-graphics) 
-           (codelet &aux codelet-number urgency-bin)  
-  (setq codelet-number (get-codelet-number (send codelet :codelet-type)))
-  (setq urgency-bin (send codelet :urgency-bin))
-  (aset codelet-urgency-array 
-	codelet-number (send urgency-bin :urgency-code)
-        (1- (aref codelet-urgency-array codelet-number 
-		  (send urgency-bin :urgency-code)))))
                                
 ;---------------------------------------------
 

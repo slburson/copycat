@@ -5,7 +5,7 @@
 (in-package :copycat)
 
 (defun init-ccat (initial-string-input modified-string-input
-		  target-string-input &key random-state no-graphics
+		  target-string-input &key random-state graphics
 		  &aux command quit)
 
   ; Initialize the random-number generator and make a copy of *random-state*
@@ -48,7 +48,7 @@
         (setq %minimal-coderack-graphics% t)
         (setq %description-graphics% nil))
 
-  (if* no-graphics
+  (if* (not graphics)
    then (setq %workspace-graphics% nil)
         (setq %coderack-graphics% nil)
         (setq %minimal-coderack-graphics% nil)
@@ -70,7 +70,7 @@
         (format t "Parameters are initialized.~&")
         (format t "Please wait...~&"))
 
-  (if* (and (not no-graphics) %demo-graphics%)
+  (if* (and graphics %demo-graphics%)
        ; This appears here too, in case %demo-graphics%
        ; was set to t when the parameters were set.
    then (setq %coderack-graphics% nil)
@@ -144,11 +144,11 @@
 
   ; Set up the input for the three strings.
   (setq initial-string-input
-	(mapcar 'string (coerce (symbol-name initial-string-input) 'list)))
+	(mapcar 'string (coerce (string initial-string-input) 'list)))
   (setq modified-string-input
-	(mapcar 'string (coerce (symbol-name modified-string-input) 'list)))
+	(mapcar 'string (coerce (string modified-string-input) 'list)))
   (setq target-string-input
-	(mapcar 'string (coerce (symbol-name target-string-input) 'list)))
+	(mapcar 'string (coerce (string target-string-input) 'list)))
   (setq i-length (length initial-string-input))
   (setq m-length (length modified-string-input))
   (setq t-length (length target-string-input))

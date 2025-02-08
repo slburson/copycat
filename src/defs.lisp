@@ -254,10 +254,15 @@
   (declare (ignore initargs))
   (c2mop:set-funcallable-instance-function obj (lambda (&rest args) (apply #'%send obj args))))
 
+#|| Not sure this is a great idea -- the `:print' methods don't seem to have been written
+    to emit a short representation.
 (cl:defmethod print-object ((obj flavor-object) stream)
-  ;; Not really the right way to do this -- the `:print' methods should take a stream.
-  (let ((*standard-output* stream))
-    (funcall obj :print)))
+  (if (%get-method obj :print)
+      ;; Not really the right way to do this -- the `:print' methods should take a stream.
+      (let ((*standard-output* stream))
+	(funcall obj :print))
+    (call-next-method)))
+||#
 
 (defmacro defflavor (flavor slots supers &rest options)
   `(progn
@@ -325,17 +330,18 @@
   ;; This implementation walks the inheritance DAG at dispatch time rather than having
   ;; `%define-method' add methods to subclasses.  The latter would be faster, but might
   ;; make consistency a little harder to maintain.  Maybe I'll change it later.
-  (let ((func (dolist (cls (c2mop:class-precedence-list (class-of obj)))
-		(when (eq (class-name (class-of obj))
-			  #-allegro 'standard-object
-			  #+allegro 'c2mop:funcallable-standard-object)
-		  (return nil))		; (from `dolist')
-		(let ((f (gethash method (flavor-method-table cls))))
-		  (when f
-		    (return f))))))
+  (let ((func (%get-method obj method)))
     (unless func
       (error "Object ~A does not have method ~S" obj method))
     (apply func obj args)))
+
+(defun %get-method (obj method)
+  (dolist (cls (c2mop:class-precedence-list (class-of obj)))
+    (let ((f (gethash method (flavor-method-table cls))))
+      (when f
+	(return f)))
+    (when (eq (class-name cls) 'flavor-object)
+      (return nil))))
 
 (declaim (inline send))
 (defun send (obj method &rest args)
