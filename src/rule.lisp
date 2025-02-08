@@ -5,42 +5,7 @@
 
 (in-package :copycat)
 
-(defflavor rule
-  (object-category1 descriptor1-facet descriptor1
-  (object-category2 nil) (descriptor2 nil)
-  (replaced-description-type nil) (relation nil))
-  (workspace-structure)
-  :gettable-instance-variables
-  :settable-instance-variables
-  :initable-instance-variables)
-
-; Here are two examples of how the rule instance can be set up:
-
-; Example 1: for the rule "Replace rightmost letter by successor":
-; OBJECT-CATEGORY1 = plato-letter
-; (The object-category of the initial-string object that changed.)
-; DESCRIPTOR1 = "rightmost".
-; DESCRIPTOR1-FACET = plato-string-position-category
-; (This is the facet of the letter that's being described by descriptor1
-; in the rule, not its letter-category or its length or anything
-; else.)
-; REPLACED-DESCRIPTION-TYPE = letter-category
-; (This  means that the rule is saying that "successor" refers to
-; letter-category, not to any other facet of the two letters being
-; related.)
-; RELATION = plato-successor.
-; (Since this is a "relation-rule", the other instance variables are
-; ignored.)
-
-; Example 2: for the rule "Replace C by D":
-; OBJECT-CATEGORY1 = plato-letter
-; DESCRIPTOR1-FACET = plato-letter-category
-; DESCRIPTOR1 = plato-c
-; OBJECT-CATEGORY2 = plato-letter
-; REPLACED-DESCRIPTION-TYPE = plato-letter-category
-; DESCRIPTOR2 = plato-d
-
-;---------------------------------------------
+;;; [SLB] `defflavor rule' moved to `defflavors.lisp'.
 
 (defun make-relation-rule (object-category1 descriptor1-facet descriptor1
 		           object-category2 replaced-description-type relation)
@@ -346,8 +311,9 @@
 
 (defun break-rule (rule)
 ; Breaks the rule.  The only reason this function has argument "rule" is so
-; that it matchs the form of the other "break" functions, and thus the breaker
+; that it matches the form of the other "break" functions, and thus the breaker
 ; codelets can call it.
+  (declare (ignore rule))
   (if* %workspace-graphics% then (send *rule* :erase %rule-mode%))
   (setq *rule* nil))
 

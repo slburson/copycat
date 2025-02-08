@@ -4,33 +4,7 @@
 
 (in-package :copycat)
 
-(defflavor group
-    (group-category ; E.g., "succgrp" or "predgrp".
-     (direction-category nil) ; E.g., "left" or "right".
-     left-obj right-obj (middle-obj nil) ; The left, right, and middle (if any)
-                                         ; objects in this group.
-     left-obj-position right-obj-position ; The string-positions of the left
-                                          ; and right objects in this group.
-     object-list ; A list of the objects in this group.
-     bond-list ; A list of the bonds in this group.
-     bond-category ; The bond category associated with the
-                       ; group-category (e.g., "successor" is associated with
-                       ; "succgrp").
-     (bond-facet nil) ; The description-type upon which the bonds making up
-                         ; this group are based (i.e., letter-category or
-                         ; length).
-     (bond-descriptions nil) ; Descriptions involving the bonds
-                                 ;  making up the group.  These are separated
-				 ; from other descriptions since they are not
-				 ; always used in the same way.
-    structure-graphics-obj ; Graphics object for displaying group.
-    )
-    (workspace-object workspace-structure)
-    :gettable-instance-variables
-    :settable-instance-variables
-    :initable-instance-variables)
-
-;---------------------------------------------
+;;; [SLB] `defflavor group' moved to `defflavors.lisp'.
 
 (defun make-group (string group-category direction-category
 	           left-obj right-obj object-list bond-list

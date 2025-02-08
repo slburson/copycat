@@ -4,25 +4,7 @@
 
 (in-package :copycat)
 
-(defflavor bond
-    (left-string-position
-     right-string-position
-     bond-category ; e.g., plato-successor
-     (direction-category nil) ; e.g., plato-right.
-     from-obj to-obj ; The objects that the bond comes from and goes to.
-     left-obj right-obj ; The leftmost and rightmost objects in the bond.
-     bond-facet ; Which facet of the objects is being related,
-                    ; e.g., plato-letter-category or plato-length.
-     from-obj-descriptor ; Which descriptor of the from-obj is being
-                         ; related, e.g., plato-a.
-     to-obj-descriptor)  ; Which descriptor of the to-obj is being related,
-                         ; e.g., plato-b.
-    (workspace-structure)
-    :gettable-instance-variables
-    :settable-instance-variables
-    :initable-instance-variables)
-
-;---------------------------------------------
+;;; [SLB] `defflavor bond' moved to `defflavors.lisp'.
 
 (defun make-bond (from-obj to-obj bond-category bond-facet
 		  from-obj-descriptor to-obj-descriptor &aux new-bond)

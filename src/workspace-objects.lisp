@@ -464,14 +464,7 @@
 ; LETTERS
 ;---------------------------------------------
 
-(defflavor letter
-    ()
-    (workspace-object)
-    :gettable-instance-variables
-    :settable-instance-variables
-    :initable-instance-variables)
-
-;---------------------------------------------
+;;; [SLB] `defflavor letter' moved to `defflavors.lisp'.
 
 (defun make-letter (string letter-category string-position)
 ; Returns a new letter.

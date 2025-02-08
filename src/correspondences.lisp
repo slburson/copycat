@@ -5,27 +5,8 @@
 
 (in-package :copycat)
 
-(defflavor correspondence
-    (obj1 obj2
-     (concept-mapping-list nil) ; The list of concept mappings underlying the
-                                ; correspondence
-     (accessory-concept-mapping-list nil)) ; This includes symmetric
-                                           ; concept-mappings (e.g., if
-                                           ; "rightmost -> leftmost" is in
-					   ; the concept-mapping list, then
-					   ; "leftmost -> rightmost will be
-					   ; in the accessory concept-mapping
-					   ; list.  Also, in the case of
-					   ; correspondences between groups,
-					   ; contains concept-mappings between
-					   ; bond-categories and
-					   ; bond-facets.
-    (workspace-structure)
-    :gettable-instance-variables
-    :settable-instance-variables
-    :initable-instance-variables)
+;;; [SLB] `defflavor correspondence' moved to `defflavors.lisp'.
 
-;---------------------------------------------
 (defun make-correspondence (obj1 obj2 concept-mapping-list
 		            &aux new-correspondence)
 ; Returns a new correspondence.
@@ -331,7 +312,7 @@
   (setq obj2 (select-list-item-by-method obj2-candidates
 		                         ':inter-string-salience))
 
-  (if* %verbose% then (format t "Chose obj2: " (send obj2 :print)))
+  (if* %verbose% then (format t "Chose obj2: ") (send obj2 :print))
 
   ; If one object spans the whole string and the other doesn't, then fizzle.
   ; (This probably isn't right.)
@@ -574,7 +555,7 @@
 	    :activate-from-workspace)
         (setq concept-mappings-to-be-added
 	      (loop for cm in (send proposed-correspondence
-				    :concept-mapping-list) do
+				    :concept-mapping-list)
                     when (and (not (send existing-correspondence
 			                 :concept-mapping-present? cm)))
 	                  collect cm))

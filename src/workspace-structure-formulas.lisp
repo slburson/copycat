@@ -203,10 +203,7 @@
 ;---------------------------------------------
 
 (defmethod (workspace-structure :calculate-total-strength)
-           (&aux internal-strength external-strength
-		 internal-strength-weight external-strength-weight)
-  (setq internal-strength (send self :internal-strength))
-  (setq external-strength (send self :external-strength))
+           (&aux internal-strength-weight external-strength-weight)
   (setq internal-strength-weight internal-strength)
   (setq external-strength-weight (fake-reciprocal internal-strength-weight))
   (weighted-average `((,internal-strength . ,internal-strength-weight)

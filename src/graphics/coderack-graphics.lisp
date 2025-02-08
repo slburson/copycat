@@ -78,16 +78,6 @@
 
 ;---------------------------------------------
 
-(defun get-codelet-number (codelet-name)
-  (- (length %codelet-types%) (length (memq codelet-name %codelet-types%))))
-
-;---------------------------------------------
-
-(defun get-codelet-name (codelet-number)
-  (nth codelet-number %codelet-types%))
-
-;---------------------------------------------
-
 (defmethod (coderack :add-codelet-to-graphics) 
            (codelet &aux codelet-number urgency-bin)
 

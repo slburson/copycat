@@ -67,6 +67,16 @@
 
 ;---------------------------------------------
 
+(defun get-codelet-number (codelet-name)
+  (position codelet-name %codelet-types%))
+
+;---------------------------------------------
+
+(defun get-codelet-name (codelet-number)
+  (nth codelet-number %codelet-types%))
+
+;---------------------------------------------
+
 (defflavor coderack
   (bin-list ; The list of coderack bins, each corresponding to an urgency
             ; level.

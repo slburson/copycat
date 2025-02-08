@@ -188,7 +188,7 @@
 		       :length i-length
 		       :object-spaces i-length
 		       :num-of-bonds-to-scan-distribution
-  	                (loop for i from 0 to (- i-length 1) do
+  	                (loop for i from 0 to (- i-length 1)
 			      collect i)
 	               :pname "initial string"))
 
@@ -225,7 +225,7 @@
 		       :length t-length
 		       :object-spaces t-length
 		       :num-of-bonds-to-scan-distribution
-  	                (loop for i from 0 to (- t-length 1) do
+  	                (loop for i from 0 to (- t-length 1)
 			      collect i)
                        :pname "target string"))
 

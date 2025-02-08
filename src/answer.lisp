@@ -63,7 +63,7 @@
         ; that the length changed at only one position.  This should be
         ; fixed eventually.
         (if* *changed-length-group*
-         then (loop for letter in answer-string-letter-list do
+         then (loop for letter in answer-string-letter-list
 	            when (and (not (memq letter *modified-letter-list*))
 			      (> (send letter :left-string-position)
 			         (send *changed-length-group*
