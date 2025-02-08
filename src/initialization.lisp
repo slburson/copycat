@@ -5,7 +5,7 @@
 (in-package :copycat)
 
 (defun init-ccat (initial-string-input modified-string-input
-		  target-string-input &key random-state graphics
+		  target-string-input &key random-state graphics verbose
 		  &aux command quit)
 
   ; Initialize the random-number generator and make a copy of *random-state*
@@ -43,6 +43,7 @@
 
   ; Initialize the constants for the program.
   (init-constants)
+  (setq %verbose% verbose)
   (if* %demo-graphics%
    then (setq %coderack-graphics% nil)
         (setq %minimal-coderack-graphics% t)
