@@ -32,8 +32,8 @@
 ;---------------------------------------------
 
 (defmethod (codelet :print) ()
-  (format t "codelet-type: ~a, arguments: ~a" codelet-type arguments)
-  (format t " urgency-bin ~a, time-stamp ~a,~&"
+  (format t "codelet-type: ~a, arguments: ~a," codelet-type arguments)
+  (format t " urgency-bin ~a, time-stamp ~a~&"
 	  (send urgency-bin :pname) time-stamp)
   (format t "~%"))
 
@@ -362,7 +362,7 @@
 ; probabilistically, biased towards deleting low-urgency, older codelets.
 (block nil
   (if* (send self :empty?)
-   then (format t "Can't remove any more codelets: coderack is empty.~&")
+   then (format t "Can't remove any codelets: coderack is empty.~&")
         (return))
 
   (setq remove-probability-list
@@ -402,7 +402,7 @@
               (send bin :set-fill-pointer
 		    (1- (send bin :fill-pointer)))))
   (if* (send self :empty?)
-   then (format t "Can't remove any codelets: coderack is empty.~&"))))
+   then (format t "Can't remove any more codelets: coderack is empty.~&"))))
 
 ;---------------------------------------------
 

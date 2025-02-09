@@ -35,7 +35,7 @@
          then (answer-builder)
               (if* *found-answer*
 	       then (update-everything)
-                    (if* %verbose%
+                    (if* (or %verbose% (not %workspace-graphics%))
 	             then (format t "My answer is ~a.~&"
 				    (send *answer-string* :pstring)))
 

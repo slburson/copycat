@@ -24,7 +24,7 @@
   (setq %slipnet-display-level% 'medium) ; Determines how many nodes are
                                        ; displayed.
   (setq %description-graphics% nil) ; T means descriptions are displayed.
-  (setq %demo-graphics% t) ; T means that the graphics are set up in a
+  (setq %demo-graphics% nil) ; T means that the graphics are set up in a
                              ; special way for demos.
   (setq %graphics-rate% 'fast) ; There are three settings: 'fast, 'medium, and
                                ; 'slow.
