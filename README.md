@@ -39,3 +39,10 @@ and then:
 
 Tested only on SBCL so far, but I'll be pretty surprised if there are any portability
 issues.  (Do report them, of course, if you run into them.)
+
+You may also be interested in these Copycat reimplementations:
+- [One in Python](https://github.com/jalanb/co.py.cat) by J. Alan Brogan
+- [Another one in Python](https://github.com/fargonauts/copycat) by Lucas Saldyt
+- [A Java port](https://github.com/speakeasy/CopyCat) by "speakeasy"
+- [A JavaScript port](https://github.com/Paul-G2/copycat-js) by "Paul-G2"; you can run it
+in your browser by going [here](https://paul-g2.github.io/copycat-js/) (recommended)
