@@ -23,7 +23,7 @@ All I have done to this code is:
 - Delete trailing whitespace
 - Define a `copycat:` package (which shadows `defmethod`) and put all the files in it
 - Add the minimal Flavors implementation, and get the code to build cleanly with it
-- Make it ASDF-loadable
+- Make it ASDF-loadable (the code in `src/graphics/` is not currently built)
 - Add `:verbose` and `:slighly-verbose` arguments to `init-ccat`
 
 I've added a few comments, marked with `[SLB]`.
