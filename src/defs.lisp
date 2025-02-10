@@ -180,7 +180,7 @@
          *temperature-height*
 
          ; OTHER CONSTANTS AND GLOBAL VARIABLES
-         %verbose% %slightly-verbose%
+         %verbose% %slightly-verbose% %single-step%
          %demo-graphics% %workspace-graphics%
 	 %coderack-graphics%
          %minimal-coderack-graphics%
@@ -301,17 +301,11 @@
 (defmacro defmethod ((flavor method) params &body body)
   `(progn
      (%define-method ',flavor ',method
-		     (lambda (self . ,params)
-		       (declare (type ,flavor self))
-		       ;; Empirically, it looks like parameters shadow instance variables
-		       ;; rather than the converse.
-		       (with-slots ,(remove-if (lambda (var)
-						 (some (lambda (param)
-							 (or (eq param var)
-							     (and (consp param) (eq (car param) var))))
-						       params))
-					       (%slot-names flavor))
-			   self
+		     ;; Empirically, it looks like parameters shadow instance variables
+		     ;; rather than the converse.
+		     (with-slots ,(%slot-names flavor) self
+		       (lambda (self . ,params)
+			 (declare (type ,flavor self))
 			 . ,body)))
      '(:method ,flavor ,method)))
 
