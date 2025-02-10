@@ -7,7 +7,17 @@
 (defun init-ccat (initial-string-input modified-string-input
 		  target-string-input
 		  &key random-state graphics verbose slightly-verbose
+		    single-step
 		  &aux command quit)
+  "Runs Copycat on the provided initial, modified, and target strings.  The
+initial and modified strings demonstrate a transformation; the program is
+to apply an analogous transformation to the target string.  Keyword arguments:
+
+- `graphics' is not yet implemented
+- `random-state' can be used to repeat runs exactly by reinitializing the PRNG
+- `slightly-verbose' prints a short message about each codelet
+- `verbose' prints a longer message about each codelet
+- `single-step' causes `break' to be called after each codelet"
 
   ; Initialize the random-number generator and make a copy of *random-state*
   ; that can be stored and used again to replay this run.
@@ -45,7 +55,8 @@
   ; Initialize the constants for the program.
   (init-constants)
   (setq %verbose% verbose)
-  (setq %slightly-verbose% slightly-verbose)
+  (setq %slightly-verbose% (or verbose slightly-verbose))
+  (setq %single-step% single-step)
   (if* %demo-graphics%
    then (setq %coderack-graphics% nil)
         (setq %minimal-coderack-graphics% t)

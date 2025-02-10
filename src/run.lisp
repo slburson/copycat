@@ -28,7 +28,7 @@
         ; Step the program.
 	(step-ccat)
 
-	(if* %verbose% then (break))
+	(if* %single-step% then (break))
 
         ; If the rule has been translated, then build the answer.
         (if* *translated-rule*

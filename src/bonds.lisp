@@ -147,7 +147,6 @@
 ; degree of association of bonds of the bond-category.
 
 (block nil
-  (if* %verbose% then (format t "~%"))
   (if* %verbose% then (format t "In bottom-up-bond-scout~&"))
 
   ; Choose object.

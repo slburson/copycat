@@ -14,6 +14,7 @@
   (setq %verbose% nil) ; T turns on verbose trace of codelet runs.
   (setq %slightly-verbose% nil) ; T turns on less verbose trace of codelet
                                 ; runs.
+  (setq %single-step% nil) ; T causes a `break' after each codelet.
   (setq %workspace-graphics% t) ; T means workspace-graphics are drawn.
   (setq %coderack-graphics% nil) ; T means coderack bar-graph is
                                     ; displayed.
