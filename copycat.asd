@@ -35,4 +35,5 @@
 		 (:file "answer")
 		 (:file "workspace-object-formulas")
 		 (:file "workspace-structure-formulas")
-		 (:file "formulas")))))
+		 (:file "formulas")
+		 (:file "copystat")))))

@@ -2,7 +2,7 @@ This is Melanie Mitchell's Copycat.  It uses the Flavors object-oriented extensi
 originated in Lisp Machine Lisp, so as originally distributed, it was not portable Common
 Lisp code.  (There are, I gather, at least two commercial CL implementations that support
 Flavors, but AFAIK none of the open-source ones have it.)  I have made it run in Common
-Lisp, however, by reimplementing, on top of CLOS, some of the Flavors functionality (see
+Lisp, however, by reimplementing, on top of CLOS, the requisite Flavors functionality (see
 `src/defs.lisp`).  It's certainly not a full Flavors implementation, nor is it
 particularly optimized, but it's enough to run Copycat.
 
