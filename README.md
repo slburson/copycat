@@ -22,7 +22,9 @@ All I have done to this code is:
 - Reorganize them into `src/` and `src/graphics/` subdirectories
 - Delete trailing whitespace
 - Define a `copycat:` package (which shadows `defmethod`) and put all the files in it
-- Add the minimal Flavors implementation, and get the code to build cleanly with it
+- Add the minimal Flavors implementation, and get the code to build cleanly with it (in
+  some cases this required moving a `defflavor` form to earlier in the build; see
+  `src/defflavors.lisp`)
 - Make it ASDF-loadable (the code in `src/graphics/` is not currently built)
 - Add `:verbose` and `:slighly-verbose` arguments to `init-ccat`
 
