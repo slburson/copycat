@@ -97,127 +97,127 @@
 ; then one is proposed, and a rule-strength-tester codelet is posted with
 ; urgency a function of the degree of conceptual-depth of the chosen descriptions.
 
-(block nil
+  (block nil
 
-  (if* %verbose% then (format t "In rule-scout~&"))
+    (if* %verbose% then (format t "In rule-scout~&"))
 
-  ; If not all replacements have been found, then fizzle.
-  (if* (send *workspace* :null-replacement?)
-   then (if* %verbose%
-	 then (format t "Not all replacements have been found.  Fizzling.~&"))
-        (return))
+    ; If not all replacements have been found, then fizzle.
+    (if* (send *workspace* :null-replacement?)
+     then (if* %verbose%
+	   then (format t "Not all replacements have been found.  Fizzling.~&"))
+	  (return))
 
-  ; Find changed object.
-  (setq changed-objects
-	(loop for obj in (send *initial-string* :object-list)
-	      when (send obj :changed?) collect obj))
+    ; Find changed object.
+    (setq changed-objects
+	  (loop for obj in (send *initial-string* :object-list)
+		when (send obj :changed?) collect obj))
 
-  ; If there is more than one changed object, then signal and error, and quit.
-  (if* (> (length changed-objects) 1)
-   then (format t "~%More than one letter changed.~&")
-        (format t "Sorry, I can't solve problems like this right now.~&")
-	(setq *quit-program* t)
-	(return))
+    ; If there is more than one changed object, then signal and error, and quit.
+    (if* (> (length changed-objects) 1)
+     then (format t "~%More than one letter changed.~&")
+	  (format t "Sorry, I can't solve problems like this right now.~&")
+	  (setq *quit-program* t)
+	  (return))
 
-  ; If no changed object, then propose rule specifying no changes.
-  (if* (null changed-objects)
-   then (propose-rule nil nil nil nil)
-        (return))
+    ; If no changed object, then propose rule specifying no changes.
+    (if* (null changed-objects)
+     then (propose-rule nil nil nil nil)
+	  (return))
 
-  ; Otherwise, go on.
-  (setq i-obj (car changed-objects))
-  (setq m-obj (send (send i-obj :replacement) :obj2))
+    ; Otherwise, go on.
+    (setq i-obj (car changed-objects))
+    (setq m-obj (send (send i-obj :replacement) :obj2))
 
-  ; Get all relevant distinguishing descriptions that are shared
-  ; (modulo slippage) between the changed object and the target-string object
-  ; it corresponds to.  If there is no target-string object corresponding to
-  ; the changed object , then all the relevant distinguishing
-  ; descriptions are considered.
-  (if* (null (send i-obj :correspondence))
-   then (setq i-descriptions
-	      (send i-obj :rule-initial-string-descriptions))
-   else (setq correspondence-slippage-list
-	      (send (send i-obj :correspondence) :slippage-list))
-        (setq i-descriptions
-	      (loop for d
-		    in (send i-obj :rule-initial-string-descriptions)
-                    if (description-member?
-			   (send d :apply-slippages
-				   i-obj correspondence-slippage-list)
-			   (send (send (send i-obj :correspondence) :obj2)
-				 :relevant-descriptions))
-      	               collect d into shared-description-list
-		       finally (return shared-description-list))))
+    ; Get all relevant distinguishing descriptions that are shared
+    ; (modulo slippage) between the changed object and the target-string object
+    ; it corresponds to.  If there is no target-string object corresponding to
+    ; the changed object , then all the relevant distinguishing
+    ; descriptions are considered.
+    (if* (null (send i-obj :correspondence))
+     then (setq i-descriptions
+		(send i-obj :rule-initial-string-descriptions))
+     else (setq correspondence-slippage-list
+		(send (send i-obj :correspondence) :slippage-list))
+	  (setq i-descriptions
+		(loop for d
+		      in (send i-obj :rule-initial-string-descriptions)
+		      if (description-member?
+			     (send d :apply-slippages
+				     i-obj correspondence-slippage-list)
+			     (send (send (send i-obj :correspondence) :obj2)
+				   :relevant-descriptions))
+			 collect d into shared-description-list
+			 finally (return shared-description-list))))
 
-  (if* %verbose%
-   then (format t "i-descriptions: ")
-        (loop for d in i-descriptions do (send d :print))
-        (format t "~%"))
+    (if* %verbose%
+     then (format t "i-descriptions: ")
+	  (loop for d in i-descriptions do (send d :print))
+	  (format t "~%"))
 
-  (if* (null i-descriptions)
-   then (if* %verbose%
-         then (format t "No i-descriptions.  Fizzling.~&"))
-        (return))
+    (if* (null i-descriptions)
+     then (if* %verbose%
+	   then (format t "No i-descriptions.  Fizzling.~&"))
+	  (return))
 
-  ; Choose the descriptor for the initial-string object probabilistically.
-  (setq i-probabilities
-	(get-temperature-adjusted-value-list
-	    (send-method-to-list i-descriptions :conceptual-depth)))
-  (setq i-description
-	(nth (select-list-position i-probabilities) i-descriptions))
+    ; Choose the descriptor for the initial-string object probabilistically.
+    (setq i-probabilities
+	  (get-temperature-adjusted-value-list
+	      (send-method-to-list i-descriptions :conceptual-depth)))
+    (setq i-description
+	  (nth (select-list-position i-probabilities) i-descriptions))
 
-  (if* %verbose%
-   then (format t "The i-description is: ")
-        (send i-description :print))
+    (if* %verbose%
+     then (format t "The i-description is: ")
+	  (send i-description :print))
 
-  ; Now choose the descriptor for the modified-string object.
-  ; Get the usable descriptions of the modified-string object.  For now,
-  ; this includes all descriptions except string-position-category
-  ; descriptions, and object-category descriptions.
-  (setq m-descriptions
-	(append (send m-obj :extrinsic-descriptions)
-	        (send m-obj :rule-modified-string-descriptions)))
+    ; Now choose the descriptor for the modified-string object.
+    ; Get the usable descriptions of the modified-string object.  For now,
+    ; this includes all descriptions except string-position-category
+    ; descriptions, and object-category descriptions.
+    (setq m-descriptions
+	  (append (send m-obj :extrinsic-descriptions)
+		  (send m-obj :rule-modified-string-descriptions)))
 
-  (if* %verbose%
-   then (format t "m-descriptions: ")
-        (loop for d in m-descriptions do
-	      (if* (or (typep d 'description)
-		      (typep d 'extrinsic-description))
-	       then (send d :print) else (send d :pname))
-              (format t "; "))
-        (format t "~%"))
+    (if* %verbose%
+     then (format t "m-descriptions: ")
+	  (loop for d in m-descriptions do
+		(if* (or (typep d 'description)
+			(typep d 'extrinsic-description))
+		 then (send d :print) else (send d :pname))
+		(format t "; "))
+	  (format t "~%"))
 
-  (if* (null m-descriptions)
-   then (if* %verbose%
-         then (format t "No m-descriptions.  Fizzling.~&"))
-        (return))
+    (if* (null m-descriptions)
+     then (if* %verbose%
+	   then (format t "No m-descriptions.  Fizzling.~&"))
+	  (return))
 
-  (setq m-probabilities
-	(get-temperature-adjusted-value-list
-	    (send-method-to-list m-descriptions :conceptual-depth)))
+    (setq m-probabilities
+	  (get-temperature-adjusted-value-list
+	      (send-method-to-list m-descriptions :conceptual-depth)))
 
-  (setq m-description
-	(nth (select-list-position m-probabilities) m-descriptions))
+    (setq m-description
+	  (nth (select-list-position m-probabilities) m-descriptions))
 
-  ; This is a kludge to avoid rules like "Replace C by successor of C".
-  ; If a description like "successor of C" is chosen, then the description
-  ; with the descriptor "D" is substituted for it.
-  (if* (and (typep m-description 'extrinsic-description)
-	   (setq related-descriptor
-		 (send (send i-description :descriptor)
-		       :get-related-node (send m-description :relation))))
-   then (if* %verbose%
-	 then (format t "fixing description~&"))
-        (setq m-description (loop for d in (send m-obj :descriptions)
-				  when (eq (send d :descriptor)
-					   related-descriptor)
-				  return d)))
+    ; This is a kludge to avoid rules like "Replace C by successor of C".
+    ; If a description like "successor of C" is chosen, then the description
+    ; with the descriptor "D" is substituted for it.
+    (if* (and (typep m-description 'extrinsic-description)
+	     (setq related-descriptor
+		   (send (send i-description :descriptor)
+			 :get-related-node (send m-description :relation))))
+     then (if* %verbose%
+	   then (format t "fixing description~&"))
+	  (setq m-description (loop for d in (send m-obj :descriptions)
+				    when (eq (send d :descriptor)
+					     related-descriptor)
+				    return d)))
 
-  (if* %verbose%
-   then (format t "The m-description is: ")
-        (send m-description :print))
+    (if* %verbose%
+     then (format t "The m-description is: ")
+	  (send m-description :print))
 
-  (propose-rule i-obj i-description m-obj m-description)))
+    (propose-rule i-obj i-description m-obj m-description)))
 
 ;---------------------------------------------
 
@@ -226,70 +226,70 @@
 ; Calculates the proposed-rule's strength, and probabilistically decides
 ; whether or not to post a rule-builder codelet.  If so, the urgency of
 ; the rule-builder codelet is a function of the strength.
-(block nil
-  (if* %verbose%
-   then (format t "In rule-strength-tester with rule ")
-        (send proposed-rule :print))
+  (block nil
+    (if* %verbose%
+     then (format t "In rule-strength-tester with rule ")
+	  (send proposed-rule :print))
 
-  ; Calculate the proposed rule's strength.
-  (send proposed-rule :update-strength-values)
-  (setq proposed-rule-strength (send proposed-rule :total-strength))
-  (if* %verbose%
-   then (format t "Proposed-rule strength is ~a~&" proposed-rule-strength))
+    ; Calculate the proposed rule's strength.
+    (send proposed-rule :update-strength-values)
+    (setq proposed-rule-strength (send proposed-rule :total-strength))
+    (if* %verbose%
+     then (format t "Proposed-rule strength is ~a~&" proposed-rule-strength))
 
-  ; Decide whether or not to post a rule-builder codelet, based on the
-  ; strength of the proposed-rule.
-  (setq build-probability
-	(get-temperature-adjusted-probability
-	    (/ proposed-rule-strength 100)))
-  (if* %verbose%
-   then (format t "Build-probability: ~a~&" build-probability))
-  (if* (eq (flip-coin build-probability) 'tails)
-   then (if* %verbose%
-	 then (format t "Rule not strong enough.  Fizzling.~&"))
-        (return))
+    ; Decide whether or not to post a rule-builder codelet, based on the
+    ; strength of the proposed-rule.
+    (setq build-probability
+	  (get-temperature-adjusted-probability
+	      (/ proposed-rule-strength 100)))
+    (if* %verbose%
+     then (format t "Build-probability: ~a~&" build-probability))
+    (if* (eq (flip-coin build-probability) 'tails)
+     then (if* %verbose%
+	   then (format t "Rule not strong enough.  Fizzling.~&"))
+	  (return))
 
-  (setq urgency proposed-rule-strength)
-  (if* %verbose%
-   then (format t "Strong enough! Posting rule-builder with urgency ~a~&"
-		(get-urgency-bin urgency)))
+    (setq urgency proposed-rule-strength)
+    (if* %verbose%
+     then (format t "Strong enough! Posting rule-builder with urgency ~a~&"
+		  (get-urgency-bin urgency)))
 
-  (send *coderack* :post
-        (make-codelet 'rule-builder (list proposed-rule)
-                      (get-urgency-bin urgency)))))
+    (send *coderack* :post
+	  (make-codelet 'rule-builder (list proposed-rule)
+			(get-urgency-bin urgency)))))
 
 ;---------------------------------------------
 
 (defun rule-builder (proposed-rule)
 ; Tries to build the proposed rule, fighting with competitors if necessary.
 
-(block nil
-  (if* %verbose%
-   then (format t "In rule builder with proposed rule: ")
-        (send proposed-rule :print))
+  (block nil
+    (if* %verbose%
+     then (format t "In rule builder with proposed rule: ")
+	  (send proposed-rule :print))
 
-  ; If this rule already exists, then fizzle.
-  (if* *rule*
-   then (if* (rule-equal? *rule* proposed-rule)
-         then (if* %verbose%
-	       then (format t "This rule already exists.  Fizzling.~&"))
-              (activate-from-workspace-rule-descriptions proposed-rule)
-	      (return)))
+    ; If this rule already exists, then fizzle.
+    (if* *rule*
+     then (if* (rule-equal? *rule* proposed-rule)
+	   then (if* %verbose%
+		 then (format t "This rule already exists.  Fizzling.~&"))
+		(activate-from-workspace-rule-descriptions proposed-rule)
+		(return)))
 
-  ; If a different rule already exists, then fight.
-  (if* *rule*
-   then (if* %verbose%
-	 then (format t "About to fight with old rule.~&"))
-	(if* (not (fight-it-out proposed-rule 1 (list *rule*) 1))
-	 then (if* %verbose%
-	       then (format t "Lost.  Fizzling.~&"))
-	      (return)
-	 else (if* %verbose%
-               then (format t "Won against old rule!~&"))))
+    ; If a different rule already exists, then fight.
+    (if* *rule*
+     then (if* %verbose%
+	   then (format t "About to fight with old rule.~&"))
+	  (if* (not (fight-it-out proposed-rule 1 (list *rule*) 1))
+	   then (if* %verbose%
+		 then (format t "Lost.  Fizzling.~&"))
+		(return)
+	   else (if* %verbose%
+		 then (format t "Won against old rule!~&"))))
 
-  ; Build this rule.
-  (if* *rule* then (break-rule *rule*))
-  (build-rule proposed-rule)))
+    ; Build this rule.
+    (if* *rule* then (break-rule *rule*))
+    (build-rule proposed-rule)))
 
 ;---------------------------------------------
 
@@ -324,88 +324,88 @@
 			     new-translated-rule)
 ; This codelet translates the rule according to the translation rules given
 ; in the slippages on the workspace.
-(block nil
-  (if* %verbose% then (format t "In rule-translator~&"))
+  (block nil
+    (if* %verbose% then (format t "In rule-translator~&"))
 
-  ; If no rule, fizzle.
-  (if* (null *rule*)
-   then (if* %verbose%
-         then (format t "No rule.  Fizzling.~&"))
-        (return))
+    ; If no rule, fizzle.
+    (if* (null *rule*)
+     then (if* %verbose%
+	   then (format t "No rule.  Fizzling.~&"))
+	  (return))
 
-  (if* (send *rule* :no-change?)
-   then (setq *translated-rule*
-	      (make-non-relation-rule nil nil nil nil nil nil))
-        (if* %workspace-graphics%
-         then (send *translated-rule* :draw %translated-rule-mode%))
-	(return))
+    (if* (send *rule* :no-change?)
+     then (setq *translated-rule*
+		(make-non-relation-rule nil nil nil nil nil nil))
+	  (if* %workspace-graphics%
+	   then (send *translated-rule* :draw %translated-rule-mode%))
+	  (return))
 
-  ; If the temperature is too high (a threshold is probabilistically chosen),
-  ; then fizzle.
-   (setq answer-temperature-threshold
-	 (send (get-answer-temperature-threshold-distribution) :choose))
-   (if* %verbose%
-    then (format t "The answer-temperature-threshold is ~a~&"
-		 answer-temperature-threshold))
-   (if* (> *temperature* answer-temperature-threshold)
-   then (if* %verbose%
-	 then (format t "Temperature too high.  Fizzling.~&"))
-        (return))
+    ; If the temperature is too high (a threshold is probabilistically chosen),
+    ; then fizzle.
+     (setq answer-temperature-threshold
+	   (send (get-answer-temperature-threshold-distribution) :choose))
+     (if* %verbose%
+      then (format t "The answer-temperature-threshold is ~a~&"
+		   answer-temperature-threshold))
+     (if* (> *temperature* answer-temperature-threshold)
+     then (if* %verbose%
+	   then (format t "Temperature too high.  Fizzling.~&"))
+	  (return))
 
-  ; Otherwise build translation of rule.
+    ; Otherwise build translation of rule.
 
-  ; Find changed object.
-  (setq changed-obj (loop for obj in (send *initial-string* :object-list)
-			  when (send obj :changed?) return obj
-			  finally (return nil)))
+    ; Find changed object.
+    (setq changed-obj (loop for obj in (send *initial-string* :object-list)
+			    when (send obj :changed?) return obj
+			    finally (return nil)))
 
-  ; If no changed object, then fizzle.
-  (if* (null changed-obj)
-   then (if* %verbose%
-         then (format t "There is no changed object.~&"))
-        (return))
+    ; If no changed object, then fizzle.
+    (if* (null changed-obj)
+     then (if* %verbose%
+	   then (format t "There is no changed object.~&"))
+	  (return))
 
-  (setq changed-obj-correspondence (send changed-obj :correspondence))
+    (setq changed-obj-correspondence (send changed-obj :correspondence))
 
-  ; Get slippages to use.
-  (setq slippage-list (send *workspace* :slippage-list))
-  (if* changed-obj-correspondence
-   then (loop for s in (send *workspace* :slippage-list) do
-	      (loop for cm in (send changed-obj-correspondence
-				    :concept-mapping-list)
-	            when (contradictory-concept-mappings? cm s) do
-	                 (setq slippage-list (remove s slippage-list)))))
+    ; Get slippages to use.
+    (setq slippage-list (send *workspace* :slippage-list))
+    (if* changed-obj-correspondence
+     then (loop for s in (send *workspace* :slippage-list) do
+		(loop for cm in (send changed-obj-correspondence
+				      :concept-mapping-list)
+		      when (contradictory-concept-mappings? cm s) do
+			   (setq slippage-list (remove s slippage-list)))))
 
-  (setq new-translated-rule
-	(if* (send *rule* :relation?)
-         then (make-relation-rule
-		  (send (send *rule* :object-category1)
-			:apply-slippages slippage-list)
-	          (send (send *rule* :descriptor1-facet)
-			:apply-slippages slippage-list)
-	          (send (send *rule* :descriptor1)
-			:apply-slippages slippage-list)
-	          (send (send *rule* :object-category2)
-			:apply-slippages slippage-list)
- 	          (send (send *rule* :replaced-description-type)
-			:apply-slippages slippage-list)
-                  (send (send *rule* :relation)
-			:apply-slippages slippage-list))
-	 else (make-non-relation-rule
-		  (send (send *rule* :object-category1)
-			:apply-slippages slippage-list)
-	          (send (send *rule* :descriptor1-facet)
-			:apply-slippages slippage-list)
-	          (send (send *rule* :descriptor1)
-			:apply-slippages slippage-list)
-	          (send (send *rule* :object-category2)
-			:apply-slippages slippage-list)
-	          (send (send *rule* :replaced-description-type)
-			:apply-slippages slippage-list)
-	          (send (send *rule* :descriptor2)
-			:apply-slippages slippage-list))))
+    (setq new-translated-rule
+	  (if* (send *rule* :relation?)
+	   then (make-relation-rule
+		    (send (send *rule* :object-category1)
+			  :apply-slippages slippage-list)
+		    (send (send *rule* :descriptor1-facet)
+			  :apply-slippages slippage-list)
+		    (send (send *rule* :descriptor1)
+			  :apply-slippages slippage-list)
+		    (send (send *rule* :object-category2)
+			  :apply-slippages slippage-list)
+		    (send (send *rule* :replaced-description-type)
+			  :apply-slippages slippage-list)
+		    (send (send *rule* :relation)
+			  :apply-slippages slippage-list))
+	   else (make-non-relation-rule
+		    (send (send *rule* :object-category1)
+			  :apply-slippages slippage-list)
+		    (send (send *rule* :descriptor1-facet)
+			  :apply-slippages slippage-list)
+		    (send (send *rule* :descriptor1)
+			  :apply-slippages slippage-list)
+		    (send (send *rule* :object-category2)
+			  :apply-slippages slippage-list)
+		    (send (send *rule* :replaced-description-type)
+			  :apply-slippages slippage-list)
+		    (send (send *rule* :descriptor2)
+			  :apply-slippages slippage-list))))
 
-  (build-translated-rule new-translated-rule)))
+    (build-translated-rule new-translated-rule)))
 
 ;---------------------------------------------
 

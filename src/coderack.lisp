@@ -326,32 +326,32 @@
 
 (defmethod (coderack :choose) (&aux chosen-bin chosen-index codelet)
 ; Chooses a codelet from the coderack.
-(block nil
-  (if* (send self :empty?)
-   then (format t "Can't choose: coderack is empty.~&")
-        (return))
+  (block nil
+    (if* (send self :empty?)
+     then (format t "Can't choose: coderack is empty.~&")
+	  (return))
 
-  ; Choose a bin probabilistically according to the urgency sum.
-  (setq chosen-bin
-	(select-list-item-by-method *coderack-bins* ':urgency-sum))
+    ; Choose a bin probabilistically according to the urgency sum.
+    (setq chosen-bin
+	  (select-list-item-by-method *coderack-bins* ':urgency-sum))
 
-  ; Choose a random codelet in this bin.
-  (setq chosen-index (random (send chosen-bin :num-of-codelets-in-bin)))
-  (setq codelet (vref (send chosen-bin :vector) chosen-index))
+    ; Choose a random codelet in this bin.
+    (setq chosen-index (random (send chosen-bin :num-of-codelets-in-bin)))
+    (setq codelet (vref (send chosen-bin :vector) chosen-index))
 
-  ; If this codelet left a hole in the vector, fill it in with the last
-  ; codelet in the bin.  Adjust the fill-pointer.
-  (if* (< chosen-index (1- (send chosen-bin :fill-pointer)))
-   then (vset (send chosen-bin :vector) chosen-index
-	      (vref (send chosen-bin :vector)
-		    (1- (send chosen-bin :fill-pointer))))
-        ; Give the codelet that moved its new bin index.
-        (send (vref (send chosen-bin :vector) chosen-index)
-	      :set-index-in-bin chosen-index))
-  (send chosen-bin :set-fill-pointer (1- (send chosen-bin :fill-pointer)))
-  (setq *codelet-list* (remove codelet *codelet-list*))
-  (send *coderack* :delete-codelet-from-graphics codelet)
-  codelet))
+    ; If this codelet left a hole in the vector, fill it in with the last
+    ; codelet in the bin.  Adjust the fill-pointer.
+    (if* (< chosen-index (1- (send chosen-bin :fill-pointer)))
+     then (vset (send chosen-bin :vector) chosen-index
+		(vref (send chosen-bin :vector)
+		      (1- (send chosen-bin :fill-pointer))))
+	  ; Give the codelet that moved its new bin index.
+	  (send (vref (send chosen-bin :vector) chosen-index)
+		:set-index-in-bin chosen-index))
+    (send chosen-bin :set-fill-pointer (1- (send chosen-bin :fill-pointer)))
+    (setq *codelet-list* (remove codelet *codelet-list*))
+    (send *coderack* :delete-codelet-from-graphics codelet)
+    codelet))
 
 ;---------------------------------------------
 
@@ -360,49 +360,49 @@
 	                       index (num-removed 0))
 ; Removes the given number of codelets from the coderack
 ; probabilistically, biased towards deleting low-urgency, older codelets.
-(block nil
-  (if* (send self :empty?)
-   then (format t "Can't remove any codelets: coderack is empty.~&")
-        (return))
+  (block nil
+    (if* (send self :empty?)
+     then (format t "Can't remove any codelets: coderack is empty.~&")
+	  (return))
 
-  (setq remove-probability-list
-	(send-method-to-list *codelet-list* :remove-probability))
-  (loop until (or (= num-removed num-to-remove) (send self :empty?)) do
-        (setq codelet (nth (select-list-position remove-probability-list)
-			   *codelet-list*))
-	(if* codelet
-         then (setq bin (send codelet :urgency-bin))
-              (setq index (send codelet :index-in-bin))
-	      (vset (send bin :vector) index nil)
-              (setq *codelet-list* (remove codelet *codelet-list*))
-              (send *coderack* :delete-codelet-from-graphics codelet)
-              (setq argument (car (send codelet :arguments)))
-              (if* (and (not (eq (send codelet :codelet-type) 'breaker))
-			(typep argument 'workspace-structure)
-			(not (or (typep argument 'rule)
-				 (typep argument 'description))))
-               then (send *workspace* :delete-proposed-structure argument)
-                    (if* (and %workspace-graphics%
-			      (send argument :graphics-obj))
-	             then (send argument :erase-proposed)))
+    (setq remove-probability-list
+	  (send-method-to-list *codelet-list* :remove-probability))
+    (loop until (or (= num-removed num-to-remove) (send self :empty?)) do
+	  (setq codelet (nth (select-list-position remove-probability-list)
+			     *codelet-list*))
+	  (if* codelet
+	   then (setq bin (send codelet :urgency-bin))
+		(setq index (send codelet :index-in-bin))
+		(vset (send bin :vector) index nil)
+		(setq *codelet-list* (remove codelet *codelet-list*))
+		(send *coderack* :delete-codelet-from-graphics codelet)
+		(setq argument (car (send codelet :arguments)))
+		(if* (and (not (eq (send codelet :codelet-type) 'breaker))
+			  (typep argument 'workspace-structure)
+			  (not (or (typep argument 'rule)
+				   (typep argument 'description))))
+		 then (send *workspace* :delete-proposed-structure argument)
+		      (if* (and %workspace-graphics%
+				(send argument :graphics-obj))
+		       then (send argument :erase-proposed)))
 
-              (if* %verbose%
-               then (format t "Removed ")
-	            (send codelet :print))
-	      (incf num-removed)
+		(if* %verbose%
+		 then (format t "Removed ")
+		      (send codelet :print))
+		(incf num-removed)
 
-              ; Fill in hole in bin left by removed codelet, if necessary.
-              (if* (< index (1- (send bin :fill-pointer)))
-               then (vset (send bin :vector) index
-	    	          (vref (send bin :vector)
-				(1- (send bin :fill-pointer))))
-                    ; Give the codelet that moved its new bin index.
-                    (send (vref (send bin :vector) index)
-			  :set-index-in-bin index))
-              (send bin :set-fill-pointer
-		    (1- (send bin :fill-pointer)))))
-  (if* (send self :empty?)
-   then (format t "Can't remove any more codelets: coderack is empty.~&"))))
+		; Fill in hole in bin left by removed codelet, if necessary.
+		(if* (< index (1- (send bin :fill-pointer)))
+		 then (vset (send bin :vector) index
+			    (vref (send bin :vector)
+				  (1- (send bin :fill-pointer))))
+		      ; Give the codelet that moved its new bin index.
+		      (send (vref (send bin :vector) index)
+			    :set-index-in-bin index))
+		(send bin :set-fill-pointer
+		      (1- (send bin :fill-pointer)))))
+    (if* (send self :empty?)
+     then (format t "Can't remove any more codelets: coderack is empty.~&"))))
 
 ;---------------------------------------------
 

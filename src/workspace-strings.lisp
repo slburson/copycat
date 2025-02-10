@@ -331,62 +331,62 @@
 ; created) is created, there is sometimes a need to create more space for it
 ; in the string.  This method determines if more space is needed, and if
 ; so, creates it.
-(block nil
-  (if* (> object-spaces highest-string-number)
-   then (return))  ; There is enough space for the new object.
+  (block nil
+    (if* (> object-spaces highest-string-number)
+     then (return))  ; There is enough space for the new object.
 
-  ; If there is not enough room for the new object, then double the storage
-  ; space.
-  (setq object-spaces (* 2 object-spaces))
-  (adjust-array proposed-bond-array
-      (list (* 2 (array-rows proposed-bond-array))
-            (* 2  (array-columns proposed-bond-array)))
-      :initial-element nil)
+    ; If there is not enough room for the new object, then double the storage
+    ; space.
+    (setq object-spaces (* 2 object-spaces))
+    (adjust-array proposed-bond-array
+	(list (* 2 (array-rows proposed-bond-array))
+	      (* 2  (array-columns proposed-bond-array)))
+	:initial-element nil)
 
-  (adjust-array from-to-bond-array
-      (list (* 2 (array-rows from-to-bond-array))
-            (* 2 (array-columns from-to-bond-array)))
-      :initial-element nil)
+    (adjust-array from-to-bond-array
+	(list (* 2 (array-rows from-to-bond-array))
+	      (* 2 (array-columns from-to-bond-array)))
+	:initial-element nil)
 
-  (adjust-array left-right-bond-array
-      (list (* 2 (array-rows left-right-bond-array))
-            (* 2 (array-columns left-right-bond-array)))
-      :initial-element nil)
+    (adjust-array left-right-bond-array
+	(list (* 2 (array-rows left-right-bond-array))
+	      (* 2 (array-columns left-right-bond-array)))
+	:initial-element nil)
 
-  (adjust-array proposed-group-array
-      (list (* 2 (array-rows proposed-group-array))
-	    (* 2 (array-columns proposed-group-array)))
-      :initial-element nil)
+    (adjust-array proposed-group-array
+	(list (* 2 (array-rows proposed-group-array))
+	      (* 2 (array-columns proposed-group-array)))
+	:initial-element nil)
 
-  (adjust-array group-vector (list (* 2 (vsize group-vector)))
-                :initial-element nil)
+    (adjust-array group-vector (list (* 2 (vsize group-vector)))
+		  :initial-element nil)
 
-  (cond ((eq self *target-string*)
-         (adjust-array (send *workspace* :proposed-correspondence-array)
-	               (list (array-dimension
-				 (send *workspace*
-				       :proposed-correspondence-array) 0)
-	                     (* 2 (array-dimension
-				      (send *workspace*
-					    :proposed-correspondence-array)
-				       1)))
-		       :initial-element nil))
+    (cond ((eq self *target-string*)
+	   (adjust-array (send *workspace* :proposed-correspondence-array)
+			 (list (array-dimension
+				   (send *workspace*
+					 :proposed-correspondence-array) 0)
+			       (* 2 (array-dimension
+					(send *workspace*
+					      :proposed-correspondence-array)
+					 1)))
+			 :initial-element nil))
 
-	((eq self *initial-string*)
-         (adjust-array (send *workspace* :proposed-correspondence-array)
-    	               (list (* 2 (array-dimension
-				      (send *workspace*
-					    :proposed-correspondence-array)
-				      0))
- 	                     (array-dimension
-				 (send *workspace*
-				       :proposed-correspondence-array) 1))
-		       :initial-element nil)
+	  ((eq self *initial-string*)
+	   (adjust-array (send *workspace* :proposed-correspondence-array)
+			 (list (* 2 (array-dimension
+					(send *workspace*
+					      :proposed-correspondence-array)
+					0))
+			       (array-dimension
+				   (send *workspace*
+					 :proposed-correspondence-array) 1))
+			 :initial-element nil)
 
-         (adjust-array (send *workspace* :correspondence-vector)
-                       (list (* 2 (vsize (send *workspace*
-					       :correspondence-vector))))
-		       :initial-element nil)))))
+	   (adjust-array (send *workspace* :correspondence-vector)
+			 (list (* 2 (vsize (send *workspace*
+						 :correspondence-vector))))
+			 :initial-element nil)))))
 
 ;---------------------------------------------
 

@@ -146,57 +146,57 @@
 ; bond-strength-tester codelet with urgency a function of the
 ; degree of association of bonds of the bond-category.
 
-(block nil
-  (if* %verbose% then (format t "In bottom-up-bond-scout~&"))
+  (block nil
+    (if* %verbose% then (format t "In bottom-up-bond-scout~&"))
 
-  ; Choose object.
-  (setq from-obj (send *workspace* :choose-object ':intra-string-salience))
-  (if* %verbose%
-   then (format t "Chose from-obj: ") (send from-obj :print))
+    ; Choose object.
+    (setq from-obj (send *workspace* :choose-object ':intra-string-salience))
+    (if* %verbose%
+     then (format t "Chose from-obj: ") (send from-obj :print))
 
-  ; Choose neighbor.
-  (setq to-obj (send from-obj :choose-neighbor))
-  (if* (null to-obj)
-   then (if* %verbose%
-	 then (format t "This object has no neighbor.  Fizzling.~&"))
-        (return))
+    ; Choose neighbor.
+    (setq to-obj (send from-obj :choose-neighbor))
+    (if* (null to-obj)
+     then (if* %verbose%
+	   then (format t "This object has no neighbor.  Fizzling.~&"))
+	  (return))
 
-  (if* %verbose%
-   then (format t "Chose to-obj: ") (send to-obj :print))
+    (if* %verbose%
+     then (format t "Chose to-obj: ") (send to-obj :print))
 
-  (if* %workspace-graphics% then (draw-bond-grope from-obj to-obj))
+    (if* %workspace-graphics% then (draw-bond-grope from-obj to-obj))
 
-  ; Choose bond-facet.
-  (setq bond-facet (choose-bond-facet from-obj to-obj))
+    ; Choose bond-facet.
+    (setq bond-facet (choose-bond-facet from-obj to-obj))
 
-  (if* (null bond-facet)
-   then (if* %verbose%
-         then (format t "No possible bond-facet.  Fizzling.~&"))
-        (return))
+    (if* (null bond-facet)
+     then (if* %verbose%
+	   then (format t "No possible bond-facet.  Fizzling.~&"))
+	  (return))
 
-  (if* %verbose%
-   then (format t "Using bond-facet ~a~&" (send bond-facet :pname)))
+    (if* %verbose%
+     then (format t "Using bond-facet ~a~&" (send bond-facet :pname)))
 
-  ; Get the two descriptors of this facet, if they exist.
-  (setq from-obj-descriptor (send from-obj :get-descriptor bond-facet))
-  (setq to-obj-descriptor (send to-obj :get-descriptor bond-facet))
+    ; Get the two descriptors of this facet, if they exist.
+    (setq from-obj-descriptor (send from-obj :get-descriptor bond-facet))
+    (setq to-obj-descriptor (send to-obj :get-descriptor bond-facet))
 
-  (if* (or (null from-obj-descriptor) (null to-obj-descriptor))
-   then (if* %verbose%
-	 then (format t "One object has no description with this facet.~&"))
-        (return))
+    (if* (or (null from-obj-descriptor) (null to-obj-descriptor))
+     then (if* %verbose%
+	   then (format t "One object has no description with this facet.~&"))
+	  (return))
 
-  ; See if there is a possible bond.
-  (setq bond-category
-	(get-bond-category from-obj-descriptor to-obj-descriptor))
+    ; See if there is a possible bond.
+    (setq bond-category
+	  (get-bond-category from-obj-descriptor to-obj-descriptor))
 
-  (if* (null bond-category)
-   then (if* %verbose%
-         then (format t "No bond.  Fizzling.~&"))
-        (return))
+    (if* (null bond-category)
+     then (if* %verbose%
+	   then (format t "No bond.  Fizzling.~&"))
+	  (return))
 
-  (propose-bond from-obj to-obj bond-category bond-facet
-		from-obj-descriptor to-obj-descriptor)))
+    (propose-bond from-obj to-obj bond-category bond-facet
+		  from-obj-descriptor to-obj-descriptor)))
 
 ;---------------------------------------------
 
@@ -215,91 +215,91 @@
 ; of the given category between the two descriptors of this facet, and if so,
 ; posts a bond-strength-tester codelet with urgency a function of the
 ; degree of association of bonds of the bond-category.
-(block nil
+  (block nil
 
-  (if* %verbose%
-   then (format t "~%In top-down-bond-scout--category, category: ~a~&"
-		(send bond-category :pname)))
+    (if* %verbose%
+     then (format t "~%In top-down-bond-scout--category, category: ~a~&"
+		  (send bond-category :pname)))
 
-  ; Choose string.
-  (setq i-relevance (send *initial-string* :local-bond-category-relevance
-			  bond-category))
-  (setq t-relevance (send *target-string* :local-bond-category-relevance
-			  bond-category))
-  (setq i-unhappiness (send *initial-string* :intra-string-unhappiness))
-  (setq t-unhappiness (send *target-string* :intra-string-unhappiness))
+    ; Choose string.
+    (setq i-relevance (send *initial-string* :local-bond-category-relevance
+			    bond-category))
+    (setq t-relevance (send *target-string* :local-bond-category-relevance
+			    bond-category))
+    (setq i-unhappiness (send *initial-string* :intra-string-unhappiness))
+    (setq t-unhappiness (send *target-string* :intra-string-unhappiness))
 
-  (if* %verbose%
-   then (format t "About to choose string.  Relevance of ~a is: "
-		(send bond-category :pname))
-        (format t "initial string: ~a, target string: ~a~&"
-	        i-relevance t-relevance)
-	(format t "i-unhappiness: ~a, t-unhappiness: ~a~&"
-		i-unhappiness t-unhappiness))
+    (if* %verbose%
+     then (format t "About to choose string.  Relevance of ~a is: "
+		  (send bond-category :pname))
+	  (format t "initial string: ~a, target string: ~a~&"
+		  i-relevance t-relevance)
+	  (format t "i-unhappiness: ~a, t-unhappiness: ~a~&"
+		  i-unhappiness t-unhappiness))
 
-  (setq string
-	(nth (select-list-position
-		 (list (round (average i-relevance i-unhappiness))
-		       (round (average t-relevance t-unhappiness))))
-	     (list *initial-string* *target-string*)))
+    (setq string
+	  (nth (select-list-position
+		   (list (round (average i-relevance i-unhappiness))
+			 (round (average t-relevance t-unhappiness))))
+	       (list *initial-string* *target-string*)))
 
-  (if* %verbose%
-   then (format t "Chose ~a~&" (send string :pname)))
+    (if* %verbose%
+     then (format t "Chose ~a~&" (send string :pname)))
 
-  ; Choose object.
-  (setq obj1 (send string :choose-object ':intra-string-salience))
-  (if* %verbose%
-   then (format t "Chose obj1: ") (send obj1 :print))
+    ; Choose object.
+    (setq obj1 (send string :choose-object ':intra-string-salience))
+    (if* %verbose%
+     then (format t "Chose obj1: ") (send obj1 :print))
 
-  ; Choose neighbor.
-  (setq obj2 (send obj1 :choose-neighbor))
-  (if* (null obj2)
-   then (if* %verbose%
-	 then (format t "This object has no neighbor.  Fizzling.~&"))
-        (return))
+    ; Choose neighbor.
+    (setq obj2 (send obj1 :choose-neighbor))
+    (if* (null obj2)
+     then (if* %verbose%
+	   then (format t "This object has no neighbor.  Fizzling.~&"))
+	  (return))
 
-  (if* %verbose% then (format t "Chose obj2: ") (send obj2 :print))
+    (if* %verbose% then (format t "Chose obj2: ") (send obj2 :print))
 
-  (if* %workspace-graphics% then (draw-bond-grope obj1 obj2))
+    (if* %workspace-graphics% then (draw-bond-grope obj1 obj2))
 
-  ; Choose bond-facet.
+    ; Choose bond-facet.
 
-  (setq bond-facet (choose-bond-facet obj1 obj2))
+    (setq bond-facet (choose-bond-facet obj1 obj2))
 
-  (if* (null bond-facet)
-   then (if* %verbose%
-         then (format t "No possible bond-facet.  Fizzling.~&"))
-        (return))
+    (if* (null bond-facet)
+     then (if* %verbose%
+	   then (format t "No possible bond-facet.  Fizzling.~&"))
+	  (return))
 
-  (if* %verbose%
-   then (format t "Using bond-facet ~a~&" (send bond-facet :pname)))
+    (if* %verbose%
+     then (format t "Using bond-facet ~a~&" (send bond-facet :pname)))
 
-  ; Get the two descriptors of this facet, if they exist.
-  (setq obj1-descriptor (send obj1 :get-descriptor bond-facet))
-  (setq obj2-descriptor (send obj2 :get-descriptor bond-facet))
+    ; Get the two descriptors of this facet, if they exist.
+    (setq obj1-descriptor (send obj1 :get-descriptor bond-facet))
+    (setq obj2-descriptor (send obj2 :get-descriptor bond-facet))
 
-  (if* (or (null obj1-descriptor) (null obj2-descriptor))
-   then (if* %verbose%
-	 then (format t "One object has no description with this facet.~&"))
-        (return))
+    (if* (or (null obj1-descriptor) (null obj2-descriptor))
+     then (if* %verbose%
+	   then (format t "One object has no description with this facet.~&"))
+	  (return))
 
-  ; See if there is a possible bond.
-  (if* (eq (get-bond-category obj1-descriptor obj2-descriptor)
-	   bond-category)
-   then (setq from-obj obj1 to-obj obj2
-   	      from-obj-descriptor obj1-descriptor
-	      to-obj-descriptor obj2-descriptor)
-   else (if* (eq (get-bond-category obj2-descriptor obj1-descriptor)
-		 bond-category)
-	 then (setq from-obj obj2 to-obj obj1
-	            from-obj-descriptor obj2-descriptor
-		    to-obj-descriptor obj1-descriptor)
-	 else (if* %verbose%
-	       then (format t "No bond.  Fizzling.~&"))
-              (return)))
+    ; See if there is a possible bond.
+    (if* (eq (get-bond-category obj1-descriptor obj2-descriptor)
+	     bond-category)
+     then (setq from-obj obj1 to-obj obj2
+		from-obj-descriptor obj1-descriptor
+		to-obj-descriptor obj2-descriptor)
+     else (if* (eq (get-bond-category obj2-descriptor obj1-descriptor)
+		   bond-category)
+	   then (setq from-obj obj2 to-obj obj1
+		      from-obj-descriptor obj2-descriptor
+		      to-obj-descriptor obj1-descriptor)
+	   else (if* %verbose%
+		 then (format t "No bond.  Fizzling.~&"))
+		(return)))
 
-  (propose-bond from-obj to-obj bond-category bond-facet
-		from-obj-descriptor to-obj-descriptor)))
+    (propose-bond from-obj to-obj bond-category bond-facet
+		  from-obj-descriptor to-obj-descriptor)))
 
 ;---------------------------------------------
 
@@ -317,92 +317,92 @@
 ; of the given direction between the two descriptors of this facet, and if so,
 ; posts a bond-strength-tester codelet with urgency a function of the
 ; degree of association of bonds of the bond-category.
-(block nil
+  (block nil
 
-  (if* %verbose%
-   then (format t "~%In top-down-bond-scout--direction, direction: ~a~&"
-		(send direction-category :pname)))
+    (if* %verbose%
+     then (format t "~%In top-down-bond-scout--direction, direction: ~a~&"
+		  (send direction-category :pname)))
 
-  ; Choose string probabilistically as a function of
-  ; local-direction-category-relevance.
-  (setq i-relevance (send *initial-string* :local-direction-category-relevance
-			direction-category))
-  (setq t-relevance (send *target-string* :local-direction-category-relevance
-			direction-category))
+    ; Choose string probabilistically as a function of
+    ; local-direction-category-relevance.
+    (setq i-relevance (send *initial-string* :local-direction-category-relevance
+			  direction-category))
+    (setq t-relevance (send *target-string* :local-direction-category-relevance
+			  direction-category))
 
-  (setq i-unhappiness (send *initial-string* :intra-string-unhappiness))
-  (setq t-unhappiness (send *target-string* :intra-string-unhappiness))
+    (setq i-unhappiness (send *initial-string* :intra-string-unhappiness))
+    (setq t-unhappiness (send *target-string* :intra-string-unhappiness))
 
-  (if* %verbose%
-   then (format t "About to choose string.  Relevance of ~a is: "
-		  (send direction-category :pname))
-        (format t "initial string: ~a, target string: ~a~&"
-		  i-relevance t-relevance)
-	(format t "i-unhappiness: ~a, t-unhappiness: ~a~&"
-		  i-unhappiness t-unhappiness))
+    (if* %verbose%
+     then (format t "About to choose string.  Relevance of ~a is: "
+		    (send direction-category :pname))
+	  (format t "initial string: ~a, target string: ~a~&"
+		    i-relevance t-relevance)
+	  (format t "i-unhappiness: ~a, t-unhappiness: ~a~&"
+		    i-unhappiness t-unhappiness))
 
-  (setq string
-	(nth (select-list-position
-		 (list (round (average i-relevance i-unhappiness))
-		       (round (average t-relevance t-unhappiness))))
-	     (list *initial-string* *target-string*)))
+    (setq string
+	  (nth (select-list-position
+		   (list (round (average i-relevance i-unhappiness))
+			 (round (average t-relevance t-unhappiness))))
+	       (list *initial-string* *target-string*)))
 
-  (if* %verbose%
-   then (format t "Chose ~a~&" (send string :pname)))
+    (if* %verbose%
+     then (format t "Chose ~a~&" (send string :pname)))
 
-  ; Choose object.
-  (setq from-obj (send string :choose-object ':intra-string-salience))
-  (if* %verbose%
-   then (format t "Chose from-obj: ") (send from-obj :print))
+    ; Choose object.
+    (setq from-obj (send string :choose-object ':intra-string-salience))
+    (if* %verbose%
+     then (format t "Chose from-obj: ") (send from-obj :print))
 
-  ; Choose neighbor.
-  (setq to-obj (if* (eq direction-category plato-left)
-                then (send from-obj :choose-left-neighbor)
-                else (send from-obj :choose-right-neighbor)))
+    ; Choose neighbor.
+    (setq to-obj (if* (eq direction-category plato-left)
+		  then (send from-obj :choose-left-neighbor)
+		  else (send from-obj :choose-right-neighbor)))
 
-  (if* (null to-obj)
-   then (if* %verbose%
-	 then (format t "This object has no ~a neighbor.  Fizzling.~&"
-		      (send direction-category :pname)))
-        (return))
+    (if* (null to-obj)
+     then (if* %verbose%
+	   then (format t "This object has no ~a neighbor.  Fizzling.~&"
+			(send direction-category :pname)))
+	  (return))
 
-  (if* %verbose%
-   then (format t "Chose to-obj: ") (send to-obj :print))
+    (if* %verbose%
+     then (format t "Chose to-obj: ") (send to-obj :print))
 
-  (if* %workspace-graphics% then (draw-bond-grope from-obj to-obj))
+    (if* %workspace-graphics% then (draw-bond-grope from-obj to-obj))
 
-  ; Choose bond-facet.
-  (setq bond-facet (choose-bond-facet from-obj to-obj))
+    ; Choose bond-facet.
+    (setq bond-facet (choose-bond-facet from-obj to-obj))
 
-  (if* (null bond-facet)
-   then (if* %verbose%
-         then (format t "No possible bond-facet.  Fizzling.~&"))
-        (return))
+    (if* (null bond-facet)
+     then (if* %verbose%
+	   then (format t "No possible bond-facet.  Fizzling.~&"))
+	  (return))
 
-  (if* %verbose%
-   then (format t "Using bond-facet ~a~&" (send bond-facet :pname)))
+    (if* %verbose%
+     then (format t "Using bond-facet ~a~&" (send bond-facet :pname)))
 
-  ; Get the two descriptors of this facet, if they exist.
-  (setq from-obj-descriptor (send from-obj :get-descriptor bond-facet))
-  (setq to-obj-descriptor (send to-obj :get-descriptor bond-facet))
+    ; Get the two descriptors of this facet, if they exist.
+    (setq from-obj-descriptor (send from-obj :get-descriptor bond-facet))
+    (setq to-obj-descriptor (send to-obj :get-descriptor bond-facet))
 
-  (if* (or (null from-obj-descriptor) (null to-obj-descriptor))
-   then (if* %verbose%
-	 then (format t
-		      "One object has no description with this facet.~&"))
-        (return))
+    (if* (or (null from-obj-descriptor) (null to-obj-descriptor))
+     then (if* %verbose%
+	   then (format t
+			"One object has no description with this facet.~&"))
+	  (return))
 
-  ; See if there is a possible bond.
-  (setq bond-category
-	(get-bond-category from-obj-descriptor to-obj-descriptor))
+    ; See if there is a possible bond.
+    (setq bond-category
+	  (get-bond-category from-obj-descriptor to-obj-descriptor))
 
-  (if* (or (null bond-category) (not (send bond-category :directed?)))
-   then (if* %verbose%
-	 then (format t "No bond in this direction.  Fizzling.~&"))
-        (return))
+    (if* (or (null bond-category) (not (send bond-category :directed?)))
+     then (if* %verbose%
+	   then (format t "No bond in this direction.  Fizzling.~&"))
+	  (return))
 
-  (propose-bond from-obj to-obj bond-category bond-facet
-		from-obj-descriptor to-obj-descriptor)))
+    (propose-bond from-obj to-obj bond-category bond-facet
+		  from-obj-descriptor to-obj-descriptor)))
 
 ;---------------------------------------------
 
@@ -412,58 +412,58 @@
 ; Calculates the proposed-bond's strength, and probabilistically decides
 ; whether or not to post a bond-builder codelet.  If so, the urgency of
 ; the bond-builder codelet is a function of the strength.
-(block nil
-  (if* %verbose%
-   then (format t "In bond strength-tester with bond ")
-        (send proposed-bond :print))
+  (block nil
+    (if* %verbose%
+     then (format t "In bond strength-tester with bond ")
+	  (send proposed-bond :print))
 
-  (if* %workspace-graphics% then (send proposed-bond :flash-proposed))
+    (if* %workspace-graphics% then (send proposed-bond :flash-proposed))
 
-  ; Calculate the proposed bond's strength.
-  (send proposed-bond :update-strength-values)
-  (setq proposed-bond-strength (send proposed-bond :total-strength))
+    ; Calculate the proposed bond's strength.
+    (send proposed-bond :update-strength-values)
+    (setq proposed-bond-strength (send proposed-bond :total-strength))
 
-  (if* %verbose%
-   then (format t "Proposed bond's strength: ~a~&"
-		proposed-bond-strength))
+    (if* %verbose%
+     then (format t "Proposed bond's strength: ~a~&"
+		  proposed-bond-strength))
 
-  ; Decide whether or not to post a bond-builder codelet, based on the
-  ; strength of the proposed-bond.
-  (setq build-probability
-	(get-temperature-adjusted-probability
-	    (/ proposed-bond-strength 100)))
+    ; Decide whether or not to post a bond-builder codelet, based on the
+    ; strength of the proposed-bond.
+    (setq build-probability
+	  (get-temperature-adjusted-probability
+	      (/ proposed-bond-strength 100)))
 
-  (if* %verbose%
-   then (format t "Build-probability: ~a~&" build-probability))
-  (if* (eq (flip-coin build-probability) 'tails)
-   then (if* %verbose%
-	 then (format t "Bond not strong enough.  Fizzling.~&"))
-        (send (send proposed-bond :string) :delete-proposed-bond
-	      proposed-bond)
-        (if* %workspace-graphics%
-	 then (send proposed-bond :erase-proposed))
-        (return))
+    (if* %verbose%
+     then (format t "Build-probability: ~a~&" build-probability))
+    (if* (eq (flip-coin build-probability) 'tails)
+     then (if* %verbose%
+	   then (format t "Bond not strong enough.  Fizzling.~&"))
+	  (send (send proposed-bond :string) :delete-proposed-bond
+		proposed-bond)
+	  (if* %workspace-graphics%
+	   then (send proposed-bond :erase-proposed))
+	  (return))
 
-  ; The bond-builder will be posted.  Activate-from-workspace some
-  ; descriptions.
-  (send (send proposed-bond :from-obj-descriptor)
-	:activate-from-workspace)
-  (send (send proposed-bond :to-obj-descriptor) :activate-from-workspace)
-  (send (send proposed-bond :bond-facet) :activate-from-workspace)
+    ; The bond-builder will be posted.  Activate-from-workspace some
+    ; descriptions.
+    (send (send proposed-bond :from-obj-descriptor)
+	  :activate-from-workspace)
+    (send (send proposed-bond :to-obj-descriptor) :activate-from-workspace)
+    (send (send proposed-bond :bond-facet) :activate-from-workspace)
 
-  (if* %workspace-graphics% then (send proposed-bond :erase-proposed))
-  (send proposed-bond :set-proposal-level 2)
-  (setq urgency proposed-bond-strength)
+    (if* %workspace-graphics% then (send proposed-bond :erase-proposed))
+    (send proposed-bond :set-proposal-level 2)
+    (setq urgency proposed-bond-strength)
 
-  ; Post the bond-builder codelet.
-  (send *coderack* :post
-	(make-codelet 'bond-builder (list proposed-bond)
-	              (get-urgency-bin urgency)))
+    ; Post the bond-builder codelet.
+    (send *coderack* :post
+	  (make-codelet 'bond-builder (list proposed-bond)
+			(get-urgency-bin urgency)))
 
-  (if* %verbose%
-   then (format t "Strong enough!  Posting bond-builder with urgency ~a.~&"
-                  (get-urgency-bin urgency)))
-  (if* %workspace-graphics% then (send proposed-bond :draw-proposed))))
+    (if* %verbose%
+     then (format t "Strong enough!  Posting bond-builder with urgency ~a.~&"
+		    (get-urgency-bin urgency)))
+    (if* %workspace-graphics% then (send proposed-bond :draw-proposed))))
 
 ;---------------------------------------------
 
@@ -473,118 +473,118 @@
 			  incompatible-bonds incompatible-groups
 			  incompatible-correspondences fight-result)
 ; Tries to build the proposed bond, fighting with competitors if necessary.
-(block nil
-  (if* %verbose%
-   then (format t "In bond-builder with ")
-        (send proposed-bond :print) (format t "~%"))
+  (block nil
+    (if* %verbose%
+     then (format t "In bond-builder with ")
+	  (send proposed-bond :print) (format t "~%"))
 
-  (setq from-obj (send proposed-bond :from-obj))
-  (setq to-obj (send proposed-bond :to-obj))
+    (setq from-obj (send proposed-bond :from-obj))
+    (setq to-obj (send proposed-bond :to-obj))
 
-  ; If either of these objects no longer exist, then fizzle.
-  (if* (or (not (memq from-obj (send *workspace* :object-list)))
-	  (not (memq to-obj (send *workspace* :object-list))))
-   then (if* %verbose%
-	 then (format t "One of the objects no longer exists.  Fizzling.~&"))
-        (return))
+    ; If either of these objects no longer exist, then fizzle.
+    (if* (or (not (memq from-obj (send *workspace* :object-list)))
+	    (not (memq to-obj (send *workspace* :object-list))))
+     then (if* %verbose%
+	   then (format t "One of the objects no longer exists.  Fizzling.~&"))
+	  (return))
 
-  ; If this bond is already present, then fizzle.
-  (if* (setq existing-bond (send string :bond-present?
-				     proposed-bond))
-   then (if* %verbose%
-	 then (format t "This bond already exists.  Fizzling...~&"))
-        (send (send existing-bond :bond-category)
-	      :activate-from-workspace)
-        (if* (send existing-bond :direction-category)
-         then (send (send existing-bond :direction-category)
-		    :activate-from-workspace))
-        (send string :delete-proposed-bond proposed-bond)
-        (return))
+    ; If this bond is already present, then fizzle.
+    (if* (setq existing-bond (send string :bond-present?
+				       proposed-bond))
+     then (if* %verbose%
+	   then (format t "This bond already exists.  Fizzling...~&"))
+	  (send (send existing-bond :bond-category)
+		:activate-from-workspace)
+	  (if* (send existing-bond :direction-category)
+	   then (send (send existing-bond :direction-category)
+		      :activate-from-workspace))
+	  (send string :delete-proposed-bond proposed-bond)
+	  (return))
 
-  (if* %workspace-graphics% then (send proposed-bond :flash-proposed))
+    (if* %workspace-graphics% then (send proposed-bond :flash-proposed))
 
-  ; Take the proposed bond off the list of proposed bonds.
-  (send string :delete-proposed-bond proposed-bond)
+    ; Take the proposed bond off the list of proposed bonds.
+    (send string :delete-proposed-bond proposed-bond)
 
-  ; If incompatible bonds exist, then fight.
-  (setq incompatible-bonds
-	(send proposed-bond :get-incompatible-bonds))
-  (if* incompatible-bonds
-   then (if* %verbose%
-         then (format t "About to fight incompatible bonds.~&"))
-        (setq fight-result
-	      (fight-it-out proposed-bond 1 incompatible-bonds 1))
-        (if* (null fight-result)
-         then (if* %verbose%
-               then (format t  "Lost. Fizzling.~&"))
-              (if* %workspace-graphics%
-	       then (send proposed-bond :erase-proposed))
-              (return))
-        (if* %verbose%
-         then (format t "Won!! Can break incompatible bonds.~&")))
+    ; If incompatible bonds exist, then fight.
+    (setq incompatible-bonds
+	  (send proposed-bond :get-incompatible-bonds))
+    (if* incompatible-bonds
+     then (if* %verbose%
+	   then (format t "About to fight incompatible bonds.~&"))
+	  (setq fight-result
+		(fight-it-out proposed-bond 1 incompatible-bonds 1))
+	  (if* (null fight-result)
+	   then (if* %verbose%
+		 then (format t  "Lost. Fizzling.~&"))
+		(if* %workspace-graphics%
+		 then (send proposed-bond :erase-proposed))
+		(return))
+	  (if* %verbose%
+	   then (format t "Won!! Can break incompatible bonds.~&")))
 
-  ; If the from-obj and the to-obj are in any of the same groups, then try to
-  ; break the group.  (The bond and group are incompatible.  Any bond
-  ; compatible with the groups would exist already, and so this function
-  ; wouldn't have gotten this far.)
-  (setq incompatible-groups (get-common-groups from-obj to-obj))
-  (if* incompatible-groups
-   then (if* %verbose%
-	 then (format t "About to fight incompatible-groups.~&"))
-        (if* (fight-it-out proposed-bond 1
-		           incompatible-groups
-		           (list-max (send-method-to-list incompatible-groups
-				                         :letter-span)))
-         then (if* %verbose%
-	       then (format t
-			    "Won!! Can break incompatible groups.~&"))
-         else (if* %verbose%
-	       then (format t  "Lost. Fizzling.~&"))
-	      (if* %workspace-graphics%
-               then (send proposed-bond :erase-proposed))
-	      (return)))
+    ; If the from-obj and the to-obj are in any of the same groups, then try to
+    ; break the group.  (The bond and group are incompatible.  Any bond
+    ; compatible with the groups would exist already, and so this function
+    ; wouldn't have gotten this far.)
+    (setq incompatible-groups (get-common-groups from-obj to-obj))
+    (if* incompatible-groups
+     then (if* %verbose%
+	   then (format t "About to fight incompatible-groups.~&"))
+	  (if* (fight-it-out proposed-bond 1
+			     incompatible-groups
+			     (list-max (send-method-to-list incompatible-groups
+							   :letter-span)))
+	   then (if* %verbose%
+		 then (format t
+			      "Won!! Can break incompatible groups.~&"))
+	   else (if* %verbose%
+		 then (format t  "Lost. Fizzling.~&"))
+		(if* %workspace-graphics%
+		 then (send proposed-bond :erase-proposed))
+		(return)))
 
-  ; If there is are incompatible correspondences, then try to break them.
-  ; For now, only directed bonds at the edges of strings can have
-  ; incompatible correspondences.
-  (if* (and (send proposed-bond :direction-category)
-	    (or (send proposed-bond :leftmost-in-string?)
-	        (send proposed-bond :rightmost-in-string?)))
-   then (setq incompatible-correspondences
-	      (send proposed-bond :get-incompatible-correspondences))
-        (if* incompatible-correspondences
-	 then (if* %verbose%
-	       then (format t "About to fight correspondences.~&"))
-              ; Proposed bond's weight is 2, incompatible correspondence's
-	      ; weight is 3.
-	      (if* (fight-it-out proposed-bond 2
-		                 incompatible-correspondences 3)
-	       then (if* %verbose%
-                     then (format t "Won!! ")
-		          (format t "Can break incompat. correspondences.~&"))
-               else (if* %verbose%
-                     then (format t  "Lost. Fizzling.~&"))
-	            (if* %workspace-graphics%
-                     then (send proposed-bond :erase-proposed))
-	            (return))))
+    ; If there is are incompatible correspondences, then try to break them.
+    ; For now, only directed bonds at the edges of strings can have
+    ; incompatible correspondences.
+    (if* (and (send proposed-bond :direction-category)
+	      (or (send proposed-bond :leftmost-in-string?)
+		  (send proposed-bond :rightmost-in-string?)))
+     then (setq incompatible-correspondences
+		(send proposed-bond :get-incompatible-correspondences))
+	  (if* incompatible-correspondences
+	   then (if* %verbose%
+		 then (format t "About to fight correspondences.~&"))
+		; Proposed bond's weight is 2, incompatible correspondence's
+		; weight is 3.
+		(if* (fight-it-out proposed-bond 2
+				   incompatible-correspondences 3)
+		 then (if* %verbose%
+		       then (format t "Won!! ")
+			    (format t "Can break incompat. correspondences.~&"))
+		 else (if* %verbose%
+		       then (format t  "Lost. Fizzling.~&"))
+		      (if* %workspace-graphics%
+		       then (send proposed-bond :erase-proposed))
+		      (return))))
 
-  ; Break incompatible groups, if there are any
-  (loop for g in incompatible-groups do (break-group g))
+    ; Break incompatible groups, if there are any
+    (loop for g in incompatible-groups do (break-group g))
 
-  ; Break incompatible bonds, if any.
-  (if* incompatible-bonds
-   then (loop for b in incompatible-bonds do (break-bond b)))
+    ; Break incompatible bonds, if any.
+    (if* incompatible-bonds
+     then (loop for b in incompatible-bonds do (break-bond b)))
 
-  ; Break incompatible correspondences, if any.
-  (if* incompatible-correspondences
-   then (loop for c in incompatible-correspondences do
-	      (break-correspondence c)))
+    ; Break incompatible correspondences, if any.
+    (if* incompatible-correspondences
+     then (loop for c in incompatible-correspondences do
+		(break-correspondence c)))
 
-  ; Build the new bond.
-  (if* %workspace-graphics%
-   then (if* (send proposed-bond :drawn?)
-         then (send proposed-bond :erase-spline)))
-  (build-bond proposed-bond)))
+    ; Build the new bond.
+    (if* %workspace-graphics%
+     then (if* (send proposed-bond :drawn?)
+	   then (send proposed-bond :erase-spline)))
+    (build-bond proposed-bond)))
 
 ;---------------------------------------------
 
@@ -698,72 +698,72 @@
 ; incompatible with a left-going predecessor bond from the 'q' to the 'p'
 ; in 'pqrs', because the correspondence would then imply both
 ; "leftmost -> leftmost" (the letters) and "right -> left" (the bonds).
-(block nil
-  (if* (send self :leftmost-in-string?)
-   then (setq correspondence (send (send self :left-obj) :correspondence))
-        (if* (null correspondence) then (return))
-        ; See if the correspondence has a string-position-category
-	; concept mapping.
-	(setq string-position-category-concept-mapping
-	      (loop for cm in (send correspondence :concept-mapping-list)
-                    when (eq (send cm :description-type1)
-			     plato-string-position-category)
-		    return cm))
-	(if* (null string-position-category-concept-mapping) then (return))
+  (block nil
+    (if* (send self :leftmost-in-string?)
+     then (setq correspondence (send (send self :left-obj) :correspondence))
+	  (if* (null correspondence) then (return))
+	  ; See if the correspondence has a string-position-category
+	  ; concept mapping.
+	  (setq string-position-category-concept-mapping
+		(loop for cm in (send correspondence :concept-mapping-list)
+		      when (eq (send cm :description-type1)
+			       plato-string-position-category)
+		      return cm))
+	  (if* (null string-position-category-concept-mapping) then (return))
 
-        ; Now see if there is a conflicting bond.
-        (setq other-obj
-	      (send correspondence :other-obj (send self :left-obj)))
-        (if* (send other-obj :leftmost-in-string?)
-         then (setq other-bond (send other-obj :right-bond))
-	 else (if* (send other-obj :rightmost-in-string?)
-               then (setq other-bond (send other-obj :left-bond))
-	       else (return)))
-	(if* (or (null other-bond)
-		 (null (send other-bond :direction-category)))
-	 then (return))
-	(setq bond-concept-mapping
-	      (make-concept-mapping
-		  plato-direction-category plato-direction-category
- 	          direction-category (send other-bond :direction-category)
-		  nil nil))
-        (if* (incompatible-concept-mappings?
-		 bond-concept-mapping
-                 string-position-category-concept-mapping)
-         then (push correspondence incompatible-correspondence-list))))
+	  ; Now see if there is a conflicting bond.
+	  (setq other-obj
+		(send correspondence :other-obj (send self :left-obj)))
+	  (if* (send other-obj :leftmost-in-string?)
+	   then (setq other-bond (send other-obj :right-bond))
+	   else (if* (send other-obj :rightmost-in-string?)
+		 then (setq other-bond (send other-obj :left-bond))
+		 else (return)))
+	  (if* (or (null other-bond)
+		   (null (send other-bond :direction-category)))
+	   then (return))
+	  (setq bond-concept-mapping
+		(make-concept-mapping
+		    plato-direction-category plato-direction-category
+		    direction-category (send other-bond :direction-category)
+		    nil nil))
+	  (if* (incompatible-concept-mappings?
+		   bond-concept-mapping
+		   string-position-category-concept-mapping)
+	   then (push correspondence incompatible-correspondence-list))))
 
   (block nil
-  (if* (send self :rightmost-in-string?)
-   then (setq correspondence (send (send self :right-obj) :correspondence))
-        (if* (null correspondence) then (return))
-        ; See if the correspondence has a string-position-category
-	; concept mapping.
-	(setq string-position-category-concept-mapping
-	      (loop for cm in (send correspondence :concept-mapping-list)
-                    when (eq (send cm :description-type1)
-			     plato-string-position-category)
-		    return cm))
-	(if* (null string-position-category-concept-mapping) then (return))
-        ; Now see if there is a conflicting bond.
-        (setq other-obj
-	      (send correspondence :other-obj (send self :right-obj)))
-        (if* (send other-obj :leftmost-in-string?)
-         then (setq other-bond (send other-obj :right-bond))
-	 else (if* (send other-obj :rightmost-in-string?)
-               then (setq other-bond (send other-obj :left-bond))
-	       else (return)))
-	(if* (or (null other-bond)
-		 (null (send other-bond :direction-category)))
-	 then (return))
-	(setq bond-concept-mapping
-	      (make-concept-mapping
-		  plato-direction-category plato-direction-category
-	          direction-category (send other-bond :direction-category)
-		  nil nil))
-        (if* (incompatible-concept-mappings?
-		 bond-concept-mapping
-                 string-position-category-concept-mapping)
-         then (push correspondence incompatible-correspondence-list))))
+    (if* (send self :rightmost-in-string?)
+     then (setq correspondence (send (send self :right-obj) :correspondence))
+	  (if* (null correspondence) then (return))
+	  ; See if the correspondence has a string-position-category
+	  ; concept mapping.
+	  (setq string-position-category-concept-mapping
+		(loop for cm in (send correspondence :concept-mapping-list)
+		      when (eq (send cm :description-type1)
+			       plato-string-position-category)
+		      return cm))
+	  (if* (null string-position-category-concept-mapping) then (return))
+	  ; Now see if there is a conflicting bond.
+	  (setq other-obj
+		(send correspondence :other-obj (send self :right-obj)))
+	  (if* (send other-obj :leftmost-in-string?)
+	   then (setq other-bond (send other-obj :right-bond))
+	   else (if* (send other-obj :rightmost-in-string?)
+		 then (setq other-bond (send other-obj :left-bond))
+		 else (return)))
+	  (if* (or (null other-bond)
+		   (null (send other-bond :direction-category)))
+	   then (return))
+	  (setq bond-concept-mapping
+		(make-concept-mapping
+		    plato-direction-category plato-direction-category
+		    direction-category (send other-bond :direction-category)
+		    nil nil))
+	  (if* (incompatible-concept-mappings?
+		   bond-concept-mapping
+		   string-position-category-concept-mapping)
+	   then (push correspondence incompatible-correspondence-list))))
 
   incompatible-correspondence-list)
 

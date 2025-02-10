@@ -147,53 +147,53 @@
 		 shared-descriptor-term shared-descriptor-weight
                  i-obj i-obj-corresponding-object slipped-descriptors
 		 rule-strength)
-(block nil
-  (if* (send self :no-change?)
-   then (return 100))
+  (block nil
+    (if* (send self :no-change?)
+     then (return 100))
 
-  (setq conceptual-depth1 (send descriptor1 :conceptual-depth))
-  (setq conceptual-depth2 (if* (send self :relation?)
-		      then (send relation :conceptual-depth)
-  	              else (send descriptor2 :conceptual-depth)))
+    (setq conceptual-depth1 (send descriptor1 :conceptual-depth))
+    (setq conceptual-depth2 (if* (send self :relation?)
+			then (send relation :conceptual-depth)
+			else (send descriptor2 :conceptual-depth)))
 
-  ; There should be pressure for descriptor1 and the relation or descriptor2
-  ; to have the same level of conceptual-depth
-  (setq conceptual-depth-difference (abs (- conceptual-depth1 conceptual-depth2)))
+    ; There should be pressure for descriptor1 and the relation or descriptor2
+    ; to have the same level of conceptual-depth
+    (setq conceptual-depth-difference (abs (- conceptual-depth1 conceptual-depth2)))
 
-  ; Now see if descriptor1 is shared (perhaps modulo slippage) with the
-  ; corresponding object, if any.
-  (setq i-obj (loop for obj in (send *initial-string* :object-list)
-	            when (send obj :changed?) return obj))
+    ; Now see if descriptor1 is shared (perhaps modulo slippage) with the
+    ; corresponding object, if any.
+    (setq i-obj (loop for obj in (send *initial-string* :object-list)
+		      when (send obj :changed?) return obj))
 
-  (setq i-obj-corresponding-object
-	(if* (send i-obj :correspondence)
-	 then (send (send i-obj :correspondence) :obj2) else nil))
+    (setq i-obj-corresponding-object
+	  (if* (send i-obj :correspondence)
+	   then (send (send i-obj :correspondence) :obj2) else nil))
 
-  (if* (null i-obj-corresponding-object)
-   then (setq shared-descriptor-term 0)
-   else (setq slipped-descriptors
-	      (loop for d in (send i-obj-corresponding-object
-			           :relevant-descriptions)
-		    collect (send (send d :apply-slippages
-					i-obj-corresponding-object
-					(send *workspace* :slippage-list))
-				  :descriptor)))
+    (if* (null i-obj-corresponding-object)
+     then (setq shared-descriptor-term 0)
+     else (setq slipped-descriptors
+		(loop for d in (send i-obj-corresponding-object
+				     :relevant-descriptions)
+		      collect (send (send d :apply-slippages
+					  i-obj-corresponding-object
+					  (send *workspace* :slippage-list))
+				    :descriptor)))
 
-        (if* (memq descriptor1 slipped-descriptors)
-         then (setq shared-descriptor-term 100)
-         else (return 0)))  ; Can't make this rule.
+	  (if* (memq descriptor1 slipped-descriptors)
+	   then (setq shared-descriptor-term 100)
+	   else (return 0)))  ; Can't make this rule.
 
-  ; The less general descriptor1 is, the more we care if it's shared.
-  (setq shared-descriptor-weight
-	(round (expt (/ (fake-reciprocal (send descriptor1 :conceptual-depth)) 10)
-		     1.4)))
+    ; The less general descriptor1 is, the more we care if it's shared.
+    (setq shared-descriptor-weight
+	  (round (expt (/ (fake-reciprocal (send descriptor1 :conceptual-depth)) 10)
+		       1.4)))
 
-  (setq rule-strength
-	(round (weighted-average
- 	         `((,(expt (average conceptual-depth1 conceptual-depth2) 1.1) . 18)
-		   (,(fake-reciprocal conceptual-depth-difference) . 12)
-		   (,shared-descriptor-term . ,shared-descriptor-weight)))))
-  (min rule-strength 100)))
+    (setq rule-strength
+	  (round (weighted-average
+		   `((,(expt (average conceptual-depth1 conceptual-depth2) 1.1) . 18)
+		     (,(fake-reciprocal conceptual-depth-difference) . 12)
+		     (,shared-descriptor-term . ,shared-descriptor-weight)))))
+    (min rule-strength 100)))
 
 ;---------------------------------------------
 
@@ -571,58 +571,58 @@
 ; I don't think this method is quite right.  The result depends on which
 ; right and left neighbors are chosen, which is probabilistic, so it doesn't
 ; always give the same value.
-(block nil
-  (if* (send self :string-spanning-group?)
-   then (return 100))
+  (block nil
+    (if* (send self :string-spanning-group?)
+     then (return 100))
 
-  ; First loop though left-neighbors.
-  (setq next-obj (send left-obj :choose-left-neighbor))
-  ; If the next object is a letter in a group, then set the next object
-  ; to the the group.  I'm not sure that this is the right
-  ; way to do all this; it might need to be fixed.
-  (if* (and (typep next-obj 'letter) (send next-obj :group))
-   then (setq next-obj (send next-obj :group)))
-  (loop until (null next-obj) do
-        ; Look at next-obj's group.  Count the next-group only if it doesn't
-	; overlap the original group.
-	(setq next-group (if* (typep next-obj 'letter) then nil else next-obj))
-        (incf slot-sum) ; Add 1 to the number of possible group slots looked
-	                ; at.
-        (if* (and next-group
-                  ; Don't count the group if it overlaps this group.
-	          (not (groups-overlap? self next-group))
-                  (eq (send next-group :group-category) group-category)
-                  (eq (send next-group :direction-category)
-		      direction-category))
-	 then (incf support-sum))
-	(setq next-obj (send next-obj :choose-left-neighbor)))
+    ; First loop though left-neighbors.
+    (setq next-obj (send left-obj :choose-left-neighbor))
+    ; If the next object is a letter in a group, then set the next object
+    ; to the the group.  I'm not sure that this is the right
+    ; way to do all this; it might need to be fixed.
+    (if* (and (typep next-obj 'letter) (send next-obj :group))
+     then (setq next-obj (send next-obj :group)))
+    (loop until (null next-obj) do
+	  ; Look at next-obj's group.  Count the next-group only if it doesn't
+	  ; overlap the original group.
+	  (setq next-group (if* (typep next-obj 'letter) then nil else next-obj))
+	  (incf slot-sum) ; Add 1 to the number of possible group slots looked
+			  ; at.
+	  (if* (and next-group
+		    ; Don't count the group if it overlaps this group.
+		    (not (groups-overlap? self next-group))
+		    (eq (send next-group :group-category) group-category)
+		    (eq (send next-group :direction-category)
+			direction-category))
+	   then (incf support-sum))
+	  (setq next-obj (send next-obj :choose-left-neighbor)))
 
-  ; Now loop though right-neighbors.
-  (setq next-obj (send right-obj :choose-right-neighbor))
-  ; If the next object is a letter in a group, then set the next object
-  ; to the group.  I'm not sure that this is the right
-  ; way to do all this; it might need to be fixed.
-  (if* (and (typep next-obj 'letter) (send next-obj :group))
-   then (setq next-obj (send next-obj :group)))
-  (loop until (null next-obj) do
-        ; Look at next-obj's group.  Count the next-group only if it doesn't
-	; overlap the original group.
-	(setq next-group (if* (typep next-obj 'letter) then nil else next-obj))
-        (incf slot-sum) ; Add 1 to the number of possible group slots looked
-	                ; at.
-        ; Support-sum gets full weight for same type of group, 0
-        ; weight for null group, and 0 for different type of group.
-        (if* (and next-group
-                  ; Don't count the group if it overlaps this group.
-	          (not (groups-overlap? self next-group))
-                  (eq (send next-group :group-category) group-category)
-                  (eq (send next-group :direction-category)
-		      direction-category))
-	 then (incf support-sum))
-	(setq next-obj (send next-obj :choose-right-neighbor)))
+    ; Now loop though right-neighbors.
+    (setq next-obj (send right-obj :choose-right-neighbor))
+    ; If the next object is a letter in a group, then set the next object
+    ; to the group.  I'm not sure that this is the right
+    ; way to do all this; it might need to be fixed.
+    (if* (and (typep next-obj 'letter) (send next-obj :group))
+     then (setq next-obj (send next-obj :group)))
+    (loop until (null next-obj) do
+	  ; Look at next-obj's group.  Count the next-group only if it doesn't
+	  ; overlap the original group.
+	  (setq next-group (if* (typep next-obj 'letter) then nil else next-obj))
+	  (incf slot-sum) ; Add 1 to the number of possible group slots looked
+			  ; at.
+	  ; Support-sum gets full weight for same type of group, 0
+	  ; weight for null group, and 0 for different type of group.
+	  (if* (and next-group
+		    ; Don't count the group if it overlaps this group.
+		    (not (groups-overlap? self next-group))
+		    (eq (send next-group :group-category) group-category)
+		    (eq (send next-group :direction-category)
+			direction-category))
+	   then (incf support-sum))
+	  (setq next-obj (send next-obj :choose-right-neighbor)))
 
-  (if* (= slot-sum 0)
-   then 100 else (round (* 100 (/ support-sum slot-sum))))))
+    (if* (= slot-sum 0)
+     then 100 else (round (* 100 (/ support-sum slot-sum))))))
 
 ;---------------------------------------------
 
