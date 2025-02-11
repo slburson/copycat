@@ -274,7 +274,7 @@
 ; Returns a list of the object's relevant descriptions (those whose
 ; description-type is fully active).
   (loop for description in descriptions
-	when (send (send description :description-type) :active?)
+	when (send description :relevant?)
 	collect description))
 
 ;----------------------------------------------
@@ -325,14 +325,14 @@
 
 (defmethod (workspace-object :relevant-distinguishing-descriptions) ()
   (loop for description in (send self :distinguishing-descriptions)
-	when (send (send description :description-type) :active?)
+	when (send description :relevant?)
 	collect description))
 
 ;----------------------------------------------
 
 (defmethod (workspace-object :relevant-non-distinguishing-descriptions) ()
   (loop for description in (send self :non-distinguishing-descriptions)
-	when (send (send description :description-type) :active?)
+	when (send description :relevant?)
 	collect description))
 
 ;----------------------------------------------
@@ -383,7 +383,7 @@
 ; part of the rule, with this object as the changed object in the
 ; initial-string.
   (loop for d in descriptions
-	when (and (send (send d :description-type) :active?)
+	when (and (send d :relevant?)
 	          (send self :distinguishing-descriptor?
 			(send d :descriptor))
 		  (not (eq (send d :description-type) plato-object-category)))
@@ -396,7 +396,7 @@
 ; modified-string part of the rule, with this object as the object in the
 ; modified string corresponding to the initial-string changed object.
   (loop for d in descriptions
-	when (and (send (send d :description-type) :active?)
+	when (and (send d :relevant?)
 	          (send self :distinguishing-descriptor?
 			(send d :descriptor))
                   (not (eq (send d :description-type)
