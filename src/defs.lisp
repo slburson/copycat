@@ -301,11 +301,17 @@
 (defmacro defmethod ((flavor method) params &body body)
   `(progn
      (%define-method ',flavor ',method
-		     ;; Empirically, it looks like parameters shadow instance variables
-		     ;; rather than the converse.
-		     (with-slots ,(%slot-names flavor) self
-		       (lambda (self . ,params)
-			 (declare (type ,flavor self))
+		     (lambda (self . ,params)
+		       (declare (type ,flavor self))
+		       ;; Empirically, it looks like parameters shadow instance variables
+		       ;; rather than the converse.
+		       (with-slots ,(remove-if (lambda (var)
+						 (some (lambda (param)
+							 (or (eq param var)
+							     (and (consp param) (eq (car param) var))))
+						       params))
+					       (%slot-names flavor))
+			   self
 			 . ,body)))
      '(:method ,flavor ,method)))
 
