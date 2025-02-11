@@ -7,7 +7,7 @@
 (defun init-ccat (initial-string-input modified-string-input
 		  target-string-input
 		  &key random-state graphics verbose slightly-verbose
-		    single-step
+		    single-step init-only
 		  &aux command quit)
   "Runs Copycat on the provided initial, modified, and target strings.  The
 initial and modified strings demonstrate a transformation; the program is
@@ -145,7 +145,7 @@ to apply an analogous transformation to the target string.  Keyword arguments:
          else (format t "Quitting program.~&")))
 
   ; Begin the run.
-  (if* (not (eq command 'quit-program))
+  (if* (not (or init-only (eq command 'quit-program)))
    then (run-ccat)))
 
 ;---------------------------------------------

@@ -159,8 +159,8 @@
 		(if* %verbose%
 		 then (format t "About to decide on concept mapping: ")
 		      (send cm :print) (format t "~%")
-		      (format t "Slippage probability is ~a~&"
-			      slippage-probability))
+		      (format t "Slippage probability at temperature ~a is ~a~&"
+			      *temperature* slippage-probability))
 		when (eq (flip-coin slippage-probability) 'heads)
 		return t
 		finally (return nil)))
