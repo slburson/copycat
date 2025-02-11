@@ -549,7 +549,7 @@
 			     &optional (directory "~/")
                              &aux random-state-file random-state-list)
   (setq random-state-file
-	(concatenate 'string directory input-file ".random-state"))
+	(string-append directory input-file ".random-state"))
   (with-open-file (istream random-state-file  :direction :input)
       (setq random-state-list (read istream)))
   (nth n random-state-list))

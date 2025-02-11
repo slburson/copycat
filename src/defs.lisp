@@ -229,6 +229,9 @@
 (defun append-symbols (&rest syms)
   (intern (apply #'concatenate 'string (mapcar #'string syms))))
 
+(defun string-append (&rest strings)
+  (apply #'concatenate 'string strings))
+
 
 ;;; ================================================================
 ;;; Implementation of just enough Flavors functionality to run this code.

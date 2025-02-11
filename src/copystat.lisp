@@ -5,8 +5,11 @@
 
 (in-package :copycat)
 
-(proclaim '(special *run-number* *data-file* *verbose-data-file*
-	            *random-state-file*))
+(defvar *run-number*)
+(defvar *data-file*)
+(defvar *verbose-data-file*)
+(defvar *random-state-file*)
+
 ;---------------------------------------------
 
 (defun copystat (initial-string modified-string target-string n
@@ -25,14 +28,11 @@
 	(string-append directory file-string ".random-state"))
 
   (if* (null (probe-file *verbose-data-file*))
-   then (with-open-file (ostream1 *data-file* :direction :output
-	 	                  :if-does-not-exist :create)
-	    (with-open-file (ostream2 *verbose-data-file* :direction :output
-		   	     :if-exists :append  :if-does-not-exist :create)
-		(format ostream2 "PROBLEM: If ~a => ~a then ~a => ?~%~%"
-			initial-string modified-string target-string)
-  	        (format ostream1 "(") ; Start list.
-  	        (format ostream2 "------------------------------------~&"))))
+   then (with-open-file (ostream *verbose-data-file* :direction :output
+		   		  :if-exists :append  :if-does-not-exist :create)
+	  (format ostream "PROBLEM: If ~a => ~a then ~a => ?~%~%"
+			  initial-string modified-string target-string)
+  	  (format ostream "------------------------------------~&")))
 
   ; Figure out how many runs are stored in the files.
 
@@ -63,7 +63,7 @@
 
 		(setq *run-number* (1- (+ i old-num-of-runs)))
                 (init-ccat initial-string modified-string target-string
-		    :no-graphics t)
+		    :graphics nil)
                 (format ostream1 "(~a ~a ~a ~a ~a ~a ~a ~a)~%"
 			(send *answer-string* :pstring) *temperature*
 			*codelet-count* *snag-count*
@@ -116,7 +116,7 @@
 
 (defun copystat-summary
     (input-file &optional (directory "~/")
-	        &aux data-file temp-data-file all-answers
+	        &aux data-file all-answers
 		     current-answer-summary
 		     answer-summary-list
 		     answer-list hyphen-pos sorted-answer-summary-list
@@ -128,22 +128,19 @@
 
   (block nil
     (setq data-file (string-append directory input-file ".data"))
-    (setq temp-data-file (string-append data-file ".tmp"))
 
     (if* (null (probe-file data-file))
      then (format t "Error:  ~a:  No such file.~&" data-file)
 	  (return))
 
-    (run-program "cp" :arguments (list data-file temp-data-file))
-
-    ; End list in temporary data-file.
-    (with-open-file
-	(ostream temp-data-file :direction :output :if-exists :append)
-	(format ostream ")"))
-
-    (with-open-file (istream temp-data-file :direction :input)
-	(setq answer-list (read istream)))
-    (delete-file temp-data-file)
+    ;; [SLB] Slightly rewritten so as not to require a temp file.
+    (with-open-file (istream data-file)
+      (loop
+	(let ((entry (read istream nil nil)))
+	  (unless entry
+	    (return))			; (from `loop')
+	  (push entry answer-list)))
+      (setq answer-list (nreverse answer-list)))
 
     (loop for answer in answer-list do
 	  (if* (not (member (car answer) all-answers))
