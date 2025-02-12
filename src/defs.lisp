@@ -227,7 +227,8 @@
   (member item list :test #'eq))
 
 (defun append-symbols (&rest syms)
-  (intern (apply #'concatenate 'string (mapcar #'string syms))))
+  (intern (apply #'concatenate 'string (mapcar #'string syms))
+	  (symbol-package 'syms)))
 
 (defun string-append (&rest strings)
   (apply #'concatenate 'string strings))
